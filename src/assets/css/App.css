@@ -1,38 +1,89 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+.container {
   min-height: 100vh;
+
+  background-color: var(--appBackgroundColor);
+  color: #f0f0f0;
+  font-size: calc(10px + 2vmin);
+
   display: flex;
   flex-direction: column;
+}
+
+header {
+  /* flex: 1; */
+
+  background: linear-gradient(-90deg, transparent, #243a66);
+}
+
+main {
+  flex: 1;
+
+  display: flex;
+  flex-direction: row;
+
+  background-color: var(--appBackgroundColor);
+}
+
+.videocall {
+  flex: 4;
+}
+
+.videocall .someone {
+  position: relative;
+
+  border: 1px solid #ff0;
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 10px,
+    #ff0 10px 12px
+  );
+
+  width: 100%;
+  height: 100%;
+}
+
+.videocall .me {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  border: 1px solid #0ff;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--appBackgroundColor) 0 10px,
+    #0ff 10px 12px
+  );
+
+  width: 10%;
+  height: 10%;
+}
+
+.textchat {
+  display: none;
+
+  flex: 1;
+
+  background-color: #f0f0f0;
+  color: var(--appBackgroundColor);
+}
+
+.controls {
+  position: fixed;
+  right: calc(50vw - 150px);
+  bottom: 1vh;
+
+  display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  justify-content: space-around;
+
+  background-color: rgba(40, 44, 52, 0.9);
+
+  width: 300px;
+  height: 60px;
+
+  border-radius: 10px;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+/* @media (prefers-reduced-motion: no-preference) {
+  // infinite or "strong" animations
+} */
