@@ -112,14 +112,14 @@ function App() {
         <div className="controls">
           {cameraIsOn ? (
             <Tooltip title="Turn camera off" aria-label="turn camera off">
-              <Fab color="secondary" onClick={turnCameraOff}>
-                <VideocamOffIcon />
+              <Fab color="default" onClick={turnCameraOff}>
+                <VideocamIcon />
               </Fab>
             </Tooltip>
           ) : (
             <Tooltip title="Turn camera on" aria-label="turn camera on">
-              <Fab color="primary" onClick={turnCameraOn}>
-                <VideocamIcon />
+              <Fab color="secondary" onClick={turnCameraOn}>
+                <VideocamOffIcon />
               </Fab>
             </Tooltip>
           )}
@@ -128,14 +128,14 @@ function App() {
               title="Turn microphone off"
               aria-label="turn microphone off"
             >
-              <Fab color="secondary" onClick={turnMicOff}>
-                <MicOffIcon />
+              <Fab color="default" onClick={turnMicOff}>
+                <MicIcon />
               </Fab>
             </Tooltip>
           ) : (
             <Tooltip title="Turn microphone on" aria-label="turn microphone on">
-              <Fab color="primary" onClick={turnMicOn}>
-                <MicIcon />
+              <Fab color="secondary" onClick={turnMicOn}>
+                <MicOffIcon />
               </Fab>
             </Tooltip>
           )}
@@ -143,13 +143,13 @@ function App() {
           {chatPanelIsOpen ? (
             <Tooltip title="Close chat panel" aria-label="close chat panel">
               <Fab color="default" onClick={closeChatPanel}>
-                <CloseChatIcon />
+                <ChatIcon />
               </Fab>
             </Tooltip>
           ) : (
             <Tooltip title="Open chat panel" aria-label="open chat panel">
               <Fab color="default" onClick={openChatPanel}>
-                <ChatIcon />
+                <CloseChatIcon />
               </Fab>
             </Tooltip>
           )}

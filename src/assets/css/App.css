@@ -91,12 +91,9 @@ main {
   align-items: center;
   justify-content: space-around;
 
-  background-color: rgba(40, 44, 52, 0.8);
-
   width: 300px;
   height: 60px;
-  border-radius: 10px;
-  opacity: 0.2;
+  opacity: 0.3;
   transition: opacity 300ms linear;
 }
 
