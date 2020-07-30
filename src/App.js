@@ -20,8 +20,8 @@ import CloseIcon from '@material-ui/icons/Close';
 import '~/assets/css/App.css';
 
 function App() {
-  const [cameraIsOn, setCameraIsOn] = React.useState(false);
-  const [micIsOn, setMicIsOn] = React.useState(false);
+  const [cameraIsOn, setCameraIsOn] = React.useState(true);
+  const [micIsOn, setMicIsOn] = React.useState(true);
   const [chatPanelIsOpen, setChatPanelIsOpen] = React.useState(false);
   const [snackbarIsOpen, setSnackbarIsOpen] = React.useState(false);
   const [snackPack, setSnackPack] = React.useState([]);
@@ -52,11 +52,11 @@ function App() {
     document.querySelector('.textchat').style.display = 'none';
   };
 
-  // const openSnackbar = () => setSnackbarIsOpen(true);
   const closeSnackbar = (event, reason) => {
     if (reason === 'clickaway') {
       return;
     }
+
     setSnackbarIsOpen(false);
   };
 
@@ -158,7 +158,7 @@ function App() {
           key={snack ? snack.key : undefined}
           anchorOrigin={{
             vertical: 'bottom',
-            horizontal: 'right',
+            horizontal: 'left',
           }}
           open={snackbarIsOpen}
           autoHideDuration={5000}
