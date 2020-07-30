@@ -59,12 +59,27 @@ main {
 }
 
 .textchat {
-  display: none;
-
   flex: 1;
+
+  display: none; /* flex */
+  flex-direction: column;
 
   background-color: #f0f0f0;
   color: var(--appBackgroundColor);
+}
+.textchat .conversation {
+  flex: 1;
+}
+.textchat .message {
+  display: flex;
+  justify-content: stretch;
+
+  border-top: 1px solid #ccc;
+}
+.message div:nth-of-type(1) {
+  flex: 1;
+
+  padding-left: 1rem;
 }
 
 .controls {
@@ -76,12 +91,17 @@ main {
   align-items: center;
   justify-content: space-around;
 
-  background-color: rgba(40, 44, 52, 0.9);
+  background-color: rgba(40, 44, 52, 0.8);
 
   width: 300px;
   height: 60px;
-
   border-radius: 10px;
+  opacity: 0.2;
+  transition: opacity 300ms linear;
+}
+
+.controls:hover {
+  opacity: 1;
 }
 
 /* @media (prefers-reduced-motion: no-preference) {
