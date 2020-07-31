@@ -10,8 +10,7 @@
 }
 
 header {
-  /* flex: 1; */
-
+  height: var(--headerHeight);
   background: linear-gradient(-90deg, transparent, #243a66);
 }
 
@@ -66,9 +65,42 @@ main {
 
   background-color: #f0f0f0;
   color: var(--appBackgroundColor);
+
+  /* overflow-y: auto; */
+  max-height: calc(100vh - var(--headerHeight));
 }
 .textchat .conversation {
-  flex: 1;
+  flex-grow: 1;
+
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column-reverse;
+  /* justify-content: flex-end; */
+
+  padding: 16px;
+}
+.conversation span {
+  font-size: 1rem;
+  line-height: 1.5rem;
+
+  padding: 0.25rem;
+  border-radius: 10px;
+  margin-top: 1rem;
+}
+.conversation .theirs {
+  margin-right: 3rem;
+  border-top-left-radius: 0px;
+
+  color: #333;
+  background-color: #ddd;
+}
+.conversation .mine {
+  margin-left: 3rem;
+  border-bottom-right-radius: 0px;
+
+  color: #fff;
+  background-color: #2196f3;
 }
 .textchat .message {
   display: flex;
@@ -79,7 +111,7 @@ main {
 .message div:nth-of-type(1) {
   flex: 1;
 
-  padding-left: 1rem;
+  padding-left: 16px;
 }
 
 .controls {

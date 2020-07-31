@@ -24,6 +24,7 @@ module.exports = {
         extensions: ['.jsx', '.js'],
       },
     ],
+    'react/jsx-props-no-spreading': 'warn',
     'import/prefer-default-export': 'off',
   },
   settings: {

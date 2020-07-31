@@ -6,6 +6,7 @@ import {
   IconButton,
   Tooltip,
   Snackbar,
+  Slide,
 } from '@material-ui/core';
 
 import SendIcon from '@material-ui/icons/Send';
@@ -18,6 +19,23 @@ import CloseChatIcon from '@material-ui/icons/SpeakerNotesOff';
 import CloseIcon from '@material-ui/icons/Close';
 
 import '~/assets/css/App.css';
+
+function SlideUpTransition(props) {
+  return <Slide {...props} direction="up" />;
+}
+
+function CustomSnackbar(props) {
+  return (
+    <Snackbar
+      {...props}
+      anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'left',
+      }}
+      TransitionComponent={SlideUpTransition}
+    />
+  );
+}
 
 function App() {
   const [cameraIsOn, setCameraIsOn] = React.useState(true);
@@ -69,20 +87,20 @@ function App() {
 
   const turnCameraOn = () => {
     setCameraIsOn(true);
-    addSnack('Now your camera is turned on. Smile!');
+    addSnack('Camera turned on.');
   };
   const turnCameraOff = () => {
     setCameraIsOn(false);
-    addSnack('Your camera is turned off now.');
+    addSnack('Camera turned off.');
   };
 
   const turnMicOn = () => {
     setMicIsOn(true);
-    addSnack('Now your microphone is open.');
+    addSnack('Microphone was open.');
   };
   const turnMicOff = () => {
     setMicIsOn(false);
-    addSnack('Your microphone is muted now.');
+    addSnack('Microphone was muted.');
   };
 
   const exitSnackbar = () => setSnack(undefined);
@@ -98,7 +116,52 @@ function App() {
           </div>
         </div>
         <div className="textchat">
-          <div className="conversation" />
+          <div className="conversation">
+            <span className="theirs">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore?
+            </span>
+            <span className="mine">
+              Duis aute irure dolor in reprehenderit in voluptate velit esse
+              cillum dolore eu fugiat.
+            </span>
+            <span className="theirs">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore?
+            </span>
+            {/* <span className="theirs">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore?
+            </span>
+            <span className="mine">
+              Duis aute irure dolor in reprehenderit in voluptate velit esse
+              cillum dolore eu fugiat.
+            </span>
+            <span className="mine">
+              Duis aute irure dolor in reprehenderit in voluptate velit esse
+              cillum dolore eu fugiat.
+            </span>
+            <span className="mine">
+              Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+              accusantium?
+            </span>
+            <span className="theirs">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore?
+            </span>
+            <span className="mine">
+              Duis aute irure dolor in reprehenderit in voluptate velit esse
+              cillum dolore eu fugiat.
+            </span> */}
+            <span className="theirs">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmod tempor incididunt ut labore et dolore?
+            </span>
+            <span className="mine">
+              Duis aute irure dolor in reprehenderit in voluptate velit esse
+              cillum dolore eu fugiat.
+            </span>
+          </div>
           <div className="message">
             <InputBase
               placeholder="Message..."
@@ -154,12 +217,8 @@ function App() {
             </Tooltip>
           )}
         </div>
-        <Snackbar
+        <CustomSnackbar
           key={snack ? snack.key : undefined}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
           open={snackbarIsOpen}
           autoHideDuration={5000}
           onClose={closeSnackbar}
