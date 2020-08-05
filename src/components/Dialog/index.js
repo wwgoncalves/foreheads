@@ -12,8 +12,29 @@ import {
 
 // import { Container } from './styles';
 
-function Dialog() {
+function Dialog(props) {
+  const {
+    handleNewRoom,
+    handleJoinExistingRoom,
+    existingRoomID,
+    setExistingRoomID,
+  } = props;
+
   const [open, setOpen] = React.useState(true);
+  const [existingRoomSelected, setExistingRoomSelected] = React.useState(false);
+
+  const handleSelectNewRoom = () => {
+    handleClose();
+    handleNewRoom();
+  };
+
+  const handleSelectExistingRoom = () => {
+    setExistingRoomSelected(true);
+  };
+
+  const handleChange = (event) => {
+    setExistingRoomID(event.target.value);
+  };
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -23,42 +44,68 @@ function Dialog() {
     setOpen(false);
   };
 
+  const handleJoin = () => {
+    handleJoinExistingRoom();
+    handleClose();
+  };
+
   return (
     <div>
-      {/* <Button variant="outlined" color="primary" onClick={handleClickOpen}>
-        Open form dialog
-      </Button> */}
       <MUDialog
         open={open}
         onClose={handleClose}
         aria-labelledby="form-dialog-title"
       >
-        <DialogTitle id="form-dialog-title">
-          Join an existing room or create a new
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            To join an existing room, provide its identifier below. Or create a
-            new one.
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="existing-room-id"
-            label="Existing Room ID"
-            type="text"
-            variant="outlined"
-            fullWidth
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="secondary">
-            Create new
-          </Button>
-          <Button onClick={handleClose} color="primary">
-            Join
-          </Button>
-        </DialogActions>
+        {!existingRoomSelected ? (
+          <>
+            <DialogTitle id="form-dialog-title">
+              Create or join an existing room
+            </DialogTitle>
+            <DialogContent>
+              <DialogActions>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleSelectNewRoom}
+                >
+                  Create
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSelectExistingRoom}
+                >
+                  Join
+                </Button>
+              </DialogActions>
+            </DialogContent>
+          </>
+        ) : (
+          <>
+            <DialogTitle id="form-dialog-title">
+              Join an existing room
+            </DialogTitle>
+            <DialogContent>
+              {/* <DialogContentText>
+                To join an existing room, provide its identifier below.
+              </DialogContentText> */}
+              <TextField
+                id="existing-room-id"
+                label="Existing Room ID"
+                type="text"
+                fullWidth
+                variant="outlined"
+                value={existingRoomID}
+                onChange={handleChange}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleJoin} color="primary">
+                Join
+              </Button>
+            </DialogActions>
+          </>
+        )}
       </MUDialog>
     </div>
   );
