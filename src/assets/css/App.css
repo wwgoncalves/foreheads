@@ -53,8 +53,12 @@ main {
     #0ff 10px 12px
   );
 
-  width: 10%;
-  height: 10%;
+  width: 15%;
+  height: 15%;
+}
+.videocall .me.alone {
+  width: 100%;
+  height: 100%;
 }
 
 .textchat {

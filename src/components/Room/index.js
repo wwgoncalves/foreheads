@@ -37,7 +37,10 @@ function CustomSnackbar(props) {
   );
 }
 
-function Room() {
+function Room(props) {
+  const { roomID } = props;
+
+  const [alone, setAlone] = React.useState(true);
   const [cameraIsOn, setCameraIsOn] = React.useState(true);
   const [micIsOn, setMicIsOn] = React.useState(true);
   const [chatPanelIsOpen, setChatPanelIsOpen] = React.useState(false);
@@ -110,14 +113,14 @@ function Room() {
       <header>
         <span>Room ID: </span>
         <strong>
-          <span id="room-id">Lzdg43FDfdf377</span>
+          <span id="room-id">{roomID}</span>
         </strong>
       </header>
       <main>
         <div className="videocall">
           <div className="someone">
             another
-            <div className="me">me</div>
+            <div className={`me ${alone ? 'alone' : ''}`}>me</div>
           </div>
         </div>
         <div className="textchat">

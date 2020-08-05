@@ -13,39 +13,33 @@ import {
 // import { Container } from './styles';
 
 function Dialog(props) {
-  const {
-    handleNewRoom,
-    handleJoinExistingRoom,
-    existingRoomID,
-    setExistingRoomID,
-  } = props;
+  const { handleCreateNewRoom, handleJoinExistingRoom } = props;
 
   const [open, setOpen] = React.useState(true);
-  const [existingRoomSelected, setExistingRoomSelected] = React.useState(false);
+  const [joinSelected, setJoinSelected] = React.useState(false);
+  const [existingRoomID, setExistingRoomID] = React.useState('');
 
-  const handleSelectNewRoom = () => {
-    handleClose();
-    handleNewRoom();
+  const handleClose = () => {
+    setOpen(false);
   };
 
-  const handleSelectExistingRoom = () => {
-    setExistingRoomSelected(true);
+  const handleSelectCreate = () => {
+    handleCreateNewRoom();
+    handleClose();
+  };
+
+  const handleSelectJoin = () => {
+    setJoinSelected(true);
   };
 
   const handleChange = (event) => {
     setExistingRoomID(event.target.value);
   };
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+  const handleJoin = (event) => {
+    event.preventDefault();
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleJoin = () => {
-    handleJoinExistingRoom();
+    handleJoinExistingRoom(existingRoomID);
     handleClose();
   };
 
@@ -56,7 +50,7 @@ function Dialog(props) {
         onClose={handleClose}
         aria-labelledby="form-dialog-title"
       >
-        {!existingRoomSelected ? (
+        {!joinSelected ? (
           <>
             <DialogTitle id="form-dialog-title">
               Create or join an existing room
@@ -64,31 +58,31 @@ function Dialog(props) {
             <DialogContent>
               <DialogActions>
                 <Button
-                  variant="outlined"
+                  variant="contained"
                   color="secondary"
-                  onClick={handleSelectNewRoom}
+                  onClick={handleSelectCreate}
                 >
-                  Create
+                  Create a new
                 </Button>
                 <Button
                   variant="contained"
                   color="primary"
-                  onClick={handleSelectExistingRoom}
+                  onClick={handleSelectJoin}
                 >
-                  Join
+                  Join a room
                 </Button>
               </DialogActions>
             </DialogContent>
           </>
         ) : (
-          <>
+          <form onSubmit={handleJoin}>
             <DialogTitle id="form-dialog-title">
               Join an existing room
             </DialogTitle>
             <DialogContent>
-              {/* <DialogContentText>
+              <DialogContentText>
                 To join an existing room, provide its identifier below.
-              </DialogContentText> */}
+              </DialogContentText>
               <TextField
                 id="existing-room-id"
                 label="Existing Room ID"
@@ -100,11 +94,11 @@ function Dialog(props) {
               />
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleJoin} color="primary">
+              <Button type="submit" variant="contained" color="primary">
                 Join
               </Button>
             </DialogActions>
-          </>
+          </form>
         )}
       </MUDialog>
     </div>
