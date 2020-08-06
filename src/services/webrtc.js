@@ -1,79 +1,139 @@
-// TODO WebRTC logic here
+export default class WebRTC {
+  constructor(
+    myID,
+    servers,
+    myVideoElement,
+    theirVideoElement,
+    firebaseRTDB,
+    roomID,
+    setAlone
+  ) {
+    this.database = firebaseRTDB; // Signalling server // ??? here ???!!
+    this.roomID = roomID; // here?!?
 
-/*
-// "Draft/inspiration" from https://websitebeaver.com/insanely-simple-webrtc-video-chat-using-firebase-with-codepen-demo
-/////////////////////////////////////////////////////////////////////////////////
+    this.myID = myID || Math.floor(Math.random() * 1000000000);
+    this.servers = servers || {
+      iceServers: [
+        { urls: 'stun:stun.services.mozilla.com' },
+        { urls: 'stun:stun.l.google.com:19302' },
+        // {
+        //   urls: 'turn:numb.viagenie.ca',
+        //   credential: 'webrtc',
+        //   username: 'websitebeaver@mail.com',
+        // },
+      ],
+    };
 
-// Create an account on Firebase, and use the credentials they give you in place of the following
-const config = {
-  apiKey: 'AIzaSyCTw5HVSY8nZ7QpRp_gBOUyde_IPU9UfXU',
-  authDomain: 'websitebeaver-de9a6.firebaseapp.com',
-  databaseURL: 'https://websitebeaver-de9a6.firebaseio.com',
-  storageBucket: 'websitebeaver-de9a6.appspot.com',
-  messagingSenderId: '411433309494',
-};
-firebase.initializeApp(config);
+    this.myVideo = myVideoElement;
+    this.theirVideo = theirVideoElement;
 
-const database = firebase.database().ref();
-const yourVideo = document.getElementById('yourVideo');
-const friendsVideo = document.getElementById('friendsVideo');
-const yourId = Math.floor(Math.random() * 1000000000);
-const servers = {
-  iceServers: [
-    { urls: 'stun:stun.services.mozilla.com' },
-    { urls: 'stun:stun.l.google.com:19302' },
-    {
-      urls: 'turn:numb.viagenie.ca',
-      credential: 'webrtc',
-      username: 'websitebeaver@mail.com',
-    },
-  ],
-};
-const pc = new RTCPeerConnection(servers);
-pc.onicecandidate = (event) =>
-  event.candidate
-    ? sendMessage(yourId, JSON.stringify({ ice: event.candidate }))
-    : console.log('Sent All Ice');
-pc.onaddstream = (event) => (friendsVideo.srcObject = event.stream);
+    this.sendMessage = this.sendMessage.bind(this);
+    this.readMessage = this.readMessage.bind(this);
+    this.initMedia = this.initMedia.bind(this);
+    this.call = this.call.bind(this);
 
-function sendMessage(senderId, data) {
-  const msg = database.push({ sender: senderId, message: data });
-  msg.remove();
-}
+    this.pc = new RTCPeerConnection(this.servers);
 
-function readMessage(data) {
-  const msg = JSON.parse(data.val().message);
-  const { sender } = data.val();
-  if (sender != yourId) {
-    if (msg.ice != undefined) pc.addIceCandidate(new RTCIceCandidate(msg.ice));
-    else if (msg.sdp.type == 'offer')
-      pc.setRemoteDescription(new RTCSessionDescription(msg.sdp))
-        .then(() => pc.createAnswer())
-        .then((answer) => pc.setLocalDescription(answer))
-        .then(() =>
-          sendMessage(yourId, JSON.stringify({ sdp: pc.localDescription }))
-        );
-    else if (msg.sdp.type == 'answer')
-      pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+    this.pc.onicecandidate = (event) => {
+      console.log('ONICE');
+
+      if (event.candidate) {
+        this.sendMessage(this.myID, JSON.stringify({ ice: event.candidate }));
+      } else {
+        console.log('All ICE candidates have been sent.');
+      }
+    };
+
+    this.pc.onaddstream = (event) => {
+      console.log('ONADDSTREAM');
+
+      this.theirVideo.srcObject = event.stream;
+      this.setAlone(false);
+    };
+
+    this.pc.ontrack = (event) => {
+      console.log('ONTRACK');
+
+      [this.theirVideo.srcObject] = event.streams;
+      setAlone(false);
+    };
+
+    this.database.subscribe(this.roomID, 'value', this.readMessage);
+  }
+
+  sendMessage(senderID, data) {
+    console.log('SENDMSG');
+
+    this.database.save(this.roomID, {
+      sender: senderID,
+      message: data,
+    });
+  }
+
+  readMessage(data) {
+    console.log('READMSG');
+
+    const msg = JSON.parse(data.val().message);
+    const { sender } = data.val();
+
+    console.log('SENDER: ', sender);
+    console.log('MYID: ', this.myID);
+
+    if (sender !== this.myID) {
+      if (msg.ice !== undefined) {
+        console.log('RECEIVED ICE');
+
+        this.pc.addIceCandidate(new RTCIceCandidate(msg.ice));
+      } else if (msg.sdp.type === 'offer') {
+        console.log('RECEIVED OFFER');
+
+        this.pc
+          .setRemoteDescription(new RTCSessionDescription(msg.sdp))
+          .then(() => this.pc.createAnswer())
+          .then((answer) => this.pc.setLocalDescription(answer))
+          .then(() =>
+            this.sendMessage(
+              this.myID,
+              JSON.stringify({ sdp: this.pc.localDescription })
+            )
+          );
+      } else if (msg.sdp.type === 'answer') {
+        console.log('RECEIVED ANSWER');
+
+        this.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+      }
+    }
+  }
+
+  initMedia() {
+    navigator.mediaDevices
+      .getUserMedia({ audio: true, video: true })
+      .then((stream) => {
+        this.myVideo.srcObject = stream;
+        this.pc.addTrack(stream.getTracks()[0]);
+      });
+    //   .then((stream) => this.pc.addStream(stream));
+  }
+
+  call() {
+    this.pc
+      .createOffer()
+      .then((offer) => this.pc.setLocalDescription(offer))
+      .then(() =>
+        this.sendMessage(
+          this.myID,
+          JSON.stringify({ sdp: this.pc.localDescription })
+        )
+      );
   }
 }
 
-database.on('child_added', readMessage);
+// "Draft/inspiration" from https://websitebeaver.com/insanely-simple-webrtc-video-chat-using-firebase-with-codepen-demo
+/// //////////////////////////////////////////////////////////////////////////////
 
-function showMyFace() {
-  navigator.mediaDevices
-    .getUserMedia({ audio: true, video: true })
-    .then((stream) => (yourVideo.srcObject = stream))
-    .then((stream) => pc.addStream(stream));
-}
+// const database = firebase.database().ref();
 
-function showFriendsFace() {
-  pc.createOffer()
-    .then((offer) => pc.setLocalDescription(offer))
-    .then(() =>
-      sendMessage(yourId, JSON.stringify({ sdp: pc.localDescription }))
-    );
-}
+// const myVideo = document.getElementById('myVideo');
+// const theirVideo = document.getElementById('theirVideo');
 
-/////////////////////////////////////////////////////////////////////////////////
-*/
+/// //////////////////////////////////////////////////////////////////////////////

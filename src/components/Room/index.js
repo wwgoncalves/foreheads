@@ -18,6 +18,8 @@ import ChatIcon from '@material-ui/icons/Chat';
 import CloseChatIcon from '@material-ui/icons/SpeakerNotesOff';
 import CloseIcon from '@material-ui/icons/Close';
 
+import WebRTC from '~/services/webrtc';
+
 // import { Container } from './styles';
 
 function SlideUpTransition(props) {
@@ -37,8 +39,10 @@ function CustomSnackbar(props) {
   );
 }
 
+let webrtc;
+
 function Room(props) {
-  const { roomID } = props;
+  const { isCaller, roomID, firebase } = props;
 
   const [alone, setAlone] = React.useState(true);
   const [cameraIsOn, setCameraIsOn] = React.useState(true);
@@ -47,6 +51,23 @@ function Room(props) {
   const [snackbarIsOpen, setSnackbarIsOpen] = React.useState(false);
   const [snackPack, setSnackPack] = React.useState([]);
   const [snack, setSnack] = React.useState(undefined);
+
+  React.useEffect(() => {
+    webrtc = new WebRTC(
+      '',
+      '',
+      document.getElementById('myVideo'),
+      document.getElementById('theirVideo'),
+      firebase,
+      roomID,
+      setAlone
+    );
+
+    webrtc.initMedia();
+    if (isCaller) {
+      webrtc.call();
+    }
+  }, [webrtc]);
 
   React.useEffect(() => {
     if (snackPack.length && !snack) {
@@ -119,8 +140,11 @@ function Room(props) {
       <main>
         <div className="videocall">
           <div className="someone">
-            another
-            <div className={`me ${alone ? 'alone' : ''}`}>me</div>
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+            <video id="theirVideo" autoPlay />
+            <div className={`me ${alone ? 'alone' : ''}`}>
+              <video id="myVideo" autoPlay muted />
+            </div>
           </div>
         </div>
         <div className="textchat">

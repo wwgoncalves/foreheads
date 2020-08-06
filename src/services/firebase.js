@@ -14,10 +14,13 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 const database = firebase.database();
+const generateKey = () => database.ref().push().key;
+const save = (key, value) => database.ref(key).update(value);
+const subscribe = (key, event, func) => database.ref(key).on(event, func);
 
 export default {
   database,
-  getKey: () => database.ref().push().key,
-  save: (key, value) => database.ref(key).update(value),
-  subscribe: (key, event, func) => database.ref(key).on(event, func),
+  generateKey,
+  save,
+  subscribe,
 };

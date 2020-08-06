@@ -40,6 +40,15 @@ main {
   width: 100%;
   height: 100%;
 }
+.videocall .someone video {
+  /* background-color: #7fff0077; */
+  width: 100%;
+  height: 100%;
+}
+.videocall .someone::before {
+  position: absolute;
+  content: 'someone';
+}
 
 .videocall .me {
   position: absolute;
@@ -55,10 +64,21 @@ main {
 
   width: 15%;
   height: 15%;
+
+  transition: width 500ms linear, height 500ms linear;
 }
 .videocall .me.alone {
   width: 100%;
   height: 100%;
+}
+.videocall .me video {
+  /* background-color: #ff634777; */
+  width: 100%;
+  height: 100%;
+}
+.videocall .me::before {
+  position: absolute;
+  content: 'me';
 }
 
 .textchat {

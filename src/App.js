@@ -9,13 +9,14 @@ function App(props) {
   const { firebase } = props;
 
   const [chosen, setChosen] = React.useState(false);
+  const [isCaller, setIsCaller] = React.useState(false);
   const [roomID, setRoomID] = React.useState('');
 
   React.useEffect(() => {
     console.dir(firebase);
 
     // // DEBUG
-    // const tstKey = firebase.getKey();
+    // const tstKey = firebase.generateKey();
     // firebase.subscribe(tstKey, 'value', (snapshot) => // OR 'child_added'
     //   console.log(snapshot.val())
     // );
@@ -25,11 +26,14 @@ function App(props) {
 
   const handleCreateNewRoom = () => {
     setChosen(true);
+    setIsCaller(true);
     console.log('CREATE A NEW ROOM');
+    const newRoomID = firebase.generateKey();
+    setRoomID(newRoomID);
   };
   const handleJoinExistingRoom = (existingRoomID) => {
     setChosen(true);
-    console.log(existingRoomID);
+    console.log('JOIN AN EXISTING ROOM: ', existingRoomID);
     setRoomID(existingRoomID);
   };
 
@@ -39,7 +43,9 @@ function App(props) {
         handleCreateNewRoom={handleCreateNewRoom}
         handleJoinExistingRoom={handleJoinExistingRoom}
       />
-      {chosen && <Room roomID={roomID} />}
+      {chosen && (
+        <Room isCaller={isCaller} roomID={roomID} firebase={firebase} />
+      )}
     </>
   );
 }
