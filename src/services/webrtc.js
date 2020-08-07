@@ -10,6 +10,7 @@ export default class WebRTC {
   ) {
     this.database = firebaseRTDB; // Signalling server // ??? here ???!!
     this.roomID = roomID; // here?!?
+    this.setAlone = setAlone; // here??!
 
     this.myID = myID || Math.floor(Math.random() * 1000000000);
     this.servers = servers || {
@@ -27,51 +28,49 @@ export default class WebRTC {
     this.myVideo = myVideoElement;
     this.theirVideo = theirVideoElement;
 
+    this.constraints = { audio: true, video: true };
+
     this.sendMessage = this.sendMessage.bind(this);
     this.readMessage = this.readMessage.bind(this);
     this.initMedia = this.initMedia.bind(this);
-    this.call = this.call.bind(this);
+    this.onICECandidateHandler = this.onICECandidateHandler.bind(this);
+    this.onTrackHandler = this.onTrackHandler.bind(this);
 
-    this.pc = new RTCPeerConnection(this.servers);
+    // this.pc = new RTCPeerConnection(this.servers);
+    this.pc = new RTCPeerConnection({});
 
-    this.pc.onicecandidate = (event) => {
-      console.log('ONICE');
+    this.pc.onicecandidate = this.onICECandidateHandler;
 
-      if (event.candidate) {
-        this.sendMessage(this.myID, JSON.stringify({ ice: event.candidate }));
-      } else {
-        console.log('All ICE candidates have been sent.');
-      }
-    };
+    /// / this.pc.onaddstream = (event) => {
+    /// /   console.log('ONADDSTREAM');
 
-    this.pc.onaddstream = (event) => {
-      console.log('ONADDSTREAM');
+    /// /   this.theirVideo.srcObject = event.stream;
+    /// /   this.setAlone(false);
+    /// / };
+    this.pc.ontrack = this.onTrackHandler;
 
-      this.theirVideo.srcObject = event.stream;
-      this.setAlone(false);
-    };
-
-    this.pc.ontrack = (event) => {
-      console.log('ONTRACK');
-
-      [this.theirVideo.srcObject] = event.streams;
-      setAlone(false);
-    };
-
-    this.database.subscribe(this.roomID, 'value', this.readMessage);
+    this.database.subscribe(this.roomID, 'child_added', this.readMessage);
   }
 
   sendMessage(senderID, data) {
     console.log('SENDMSG');
 
     this.database.save(this.roomID, {
-      sender: senderID,
-      message: data,
+      [`${new Date().getTime()}`]: {
+        sender: senderID,
+        message: data,
+      },
     });
   }
 
-  readMessage(data) {
-    console.log('READMSG');
+  async readMessage(data) {
+    console.log('READMSG: ', data.val());
+    if (data.val() === null) return;
+
+    // const content = data.val();
+    // const timeKey = Object.keys(content)[0];
+    // const msg = JSON.parse(content[timeKey].message);
+    // const { sender } = content[timeKey];
 
     const msg = JSON.parse(data.val().message);
     const { sender } = data.val();
@@ -85,18 +84,28 @@ export default class WebRTC {
 
         this.pc.addIceCandidate(new RTCIceCandidate(msg.ice));
       } else if (msg.sdp.type === 'offer') {
-        console.log('RECEIVED OFFER');
+        console.log('RECEIVED OFFER, SEND ANSWER');
 
-        this.pc
-          .setRemoteDescription(new RTCSessionDescription(msg.sdp))
-          .then(() => this.pc.createAnswer())
-          .then((answer) => this.pc.setLocalDescription(answer))
-          .then(() =>
-            this.sendMessage(
-              this.myID,
-              JSON.stringify({ sdp: this.pc.localDescription })
-            )
+        try {
+          await this.pc.setRemoteDescription(
+            new RTCSessionDescription(msg.sdp)
           );
+
+          const stream = await navigator.mediaDevices.getUserMedia(
+            this.constraints
+          );
+          stream
+            .getTracks()
+            .forEach((track) => this.pc.addTrack(track, stream));
+          await this.pc.setLocalDescription(await this.pc.createAnswer());
+
+          this.sendMessage(
+            this.myID,
+            JSON.stringify({ sdp: this.pc.localDescription })
+          );
+        } catch (error) {
+          console.error(error);
+        }
       } else if (msg.sdp.type === 'answer') {
         console.log('RECEIVED ANSWER');
 
@@ -105,26 +114,46 @@ export default class WebRTC {
     }
   }
 
-  initMedia() {
-    navigator.mediaDevices
-      .getUserMedia({ audio: true, video: true })
-      .then((stream) => {
-        this.myVideo.srcObject = stream;
-        this.pc.addTrack(stream.getTracks()[0]);
-      });
-    //   .then((stream) => this.pc.addStream(stream));
-  }
+  async initMedia(isCaller) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(
+        this.constraints
+      );
+      stream.getTracks().forEach((track) => this.pc.addTrack(track, stream));
 
-  call() {
-    this.pc
-      .createOffer()
-      .then((offer) => this.pc.setLocalDescription(offer))
-      .then(() =>
+      this.myVideo.srcObject = stream;
+
+      if (isCaller) {
+        console.log('IS THE CALLER, SEND OFFER');
+
+        await this.pc.setLocalDescription(await this.pc.createOffer());
+
         this.sendMessage(
           this.myID,
           JSON.stringify({ sdp: this.pc.localDescription })
-        )
-      );
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  onICECandidateHandler(event) {
+    console.log('ONICE');
+
+    if (event.candidate) {
+      this.sendMessage(this.myID, JSON.stringify({ ice: event.candidate }));
+    } else {
+      console.log('All ICE candidates have been sent.');
+    }
+  }
+
+  onTrackHandler(event) {
+    console.log('ONTRACK');
+
+    if (this.theirVideo.srcObject) return;
+    this.theirVideo.srcObject = event.streams[0];
+    this.setAlone(false);
   }
 }
 

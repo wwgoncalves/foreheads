@@ -7,6 +7,8 @@ import {
   Tooltip,
   Snackbar,
   Slide,
+  Link,
+  colors,
 } from '@material-ui/core';
 
 import SendIcon from '@material-ui/icons/Send';
@@ -17,6 +19,7 @@ import VideocamOffIcon from '@material-ui/icons/VideocamOff';
 import ChatIcon from '@material-ui/icons/Chat';
 import CloseChatIcon from '@material-ui/icons/SpeakerNotesOff';
 import CloseIcon from '@material-ui/icons/Close';
+import WhatsAppIcon from '@material-ui/icons/WhatsApp';
 
 import WebRTC from '~/services/webrtc';
 
@@ -39,8 +42,6 @@ function CustomSnackbar(props) {
   );
 }
 
-let webrtc;
-
 function Room(props) {
   const { isCaller, roomID, firebase } = props;
 
@@ -53,7 +54,7 @@ function Room(props) {
   const [snack, setSnack] = React.useState(undefined);
 
   React.useEffect(() => {
-    webrtc = new WebRTC(
+    const webrtc = new WebRTC(
       '',
       '',
       document.getElementById('myVideo'),
@@ -63,11 +64,8 @@ function Room(props) {
       setAlone
     );
 
-    webrtc.initMedia();
-    if (isCaller) {
-      webrtc.call();
-    }
-  }, [webrtc]);
+    webrtc.initMedia(isCaller);
+  }, []);
 
   React.useEffect(() => {
     if (snackPack.length && !snack) {
@@ -136,6 +134,14 @@ function Room(props) {
         <strong>
           <span id="room-id">{roomID}</span>
         </strong>
+        <IconButton
+          component={Link}
+          onClick={() =>
+            window.open(`whatsapp://send?text=${encodeURIComponent(roomID)}`)
+          }
+        >
+          <WhatsAppIcon style={{ color: colors.green[500] }} />
+        </IconButton>
       </header>
       <main>
         <div className="videocall">
