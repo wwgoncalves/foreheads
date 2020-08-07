@@ -1,7 +1,20 @@
 :root {
   --appBackgroundColor: rgb(40, 44, 52);
   --headerHeight: 3rem;
-  --whatsappColor: #25d366;
+
+  --muiDefaultColor: rgba(0, 0, 0, 0.87);
+  --muiPrimaryColor: #fff;
+  --muiSecondaryColor: #fff;
+  --muiDefaultBgColor: #e0e0e0;
+  --muiDefaultBgColorHover: #d5d5d5;
+  --muiPrimaryBgColor: #3f51b5;
+  --muiPrimaryBgColorHover: #303f9f;
+  --muiSecondaryBgColor: #f50057;
+  --muiSecondaryBgColorHover: #c51162;
+
+  --whatsappColor: #fff;
+  --whatsappBgColor: #25d366;
+  --whatsappBgColorHover: #19c257;
 }
 
 * {

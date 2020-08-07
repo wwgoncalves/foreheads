@@ -21,14 +21,22 @@ header {
 header > div {
   display: flex;
   align-items: center;
+
+  color: var(--muiDefaultColor);
+  background-color: var(--muiDefaultBgColor);
+  border-radius: 4px;
+  padding: 0 0.25rem;
 }
 #room-id {
   margin-left: 1rem;
   font-family: monospace;
 }
 .whatsapp {
-  color: #fafafa !important;
-  background-color: var(--whatsappColor) !important;
+  color: var(--whatsappColor) !important;
+  background-color: var(--whatsappBgColor) !important;
+}
+.whatsapp:hover {
+  background-color: var(--whatsappBgColorHover) !important;
 }
 
 main {
@@ -159,19 +167,24 @@ main {
 
 .controls {
   position: fixed;
-  right: calc(50vw - 150px);
+  right: calc(50vw - 300px);
   bottom: 1vh;
 
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
 
-  width: 300px;
+  width: 600px;
   height: 60px;
   opacity: 0.3;
   transition: opacity 300ms linear;
 }
-
+.controls div {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
 .controls:hover {
   opacity: 1;
 }

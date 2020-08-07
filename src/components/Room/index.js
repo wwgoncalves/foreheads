@@ -7,9 +7,7 @@ import {
   Tooltip,
   Snackbar,
   Slide,
-  Link,
   Button,
-  colors,
 } from '@material-ui/core';
 
 import SendIcon from '@material-ui/icons/Send';
@@ -21,13 +19,15 @@ import ChatIcon from '@material-ui/icons/Chat';
 import CloseChatIcon from '@material-ui/icons/SpeakerNotesOff';
 import CloseIcon from '@material-ui/icons/Close';
 import WhatsAppIcon from '@material-ui/icons/WhatsApp';
+import CallEndIcon from '@material-ui/icons/CallEnd';
+import AttachFileIcon from '@material-ui/icons/AttachFile';
 
 import WebRTC from '~/services/webrtc';
 
 // import { Container } from './styles';
 
 function SlideUpTransition(props) {
-  return <Slide {...props} direction="up" />;
+  return <Slide {...props} direction="down" />;
 }
 
 function CustomSnackbar(props) {
@@ -35,8 +35,8 @@ function CustomSnackbar(props) {
     <Snackbar
       {...props}
       anchorOrigin={{
-        vertical: 'bottom',
-        horizontal: 'left',
+        vertical: 'top',
+        horizontal: 'center',
       }}
       TransitionComponent={SlideUpTransition}
     />
@@ -108,6 +108,8 @@ function Room(props) {
     ]);
   };
 
+  const exitSnackbar = () => setSnack(undefined);
+
   const turnCameraOn = () => {
     setCameraIsOn(true);
     addSnack('Camera turned on');
@@ -126,7 +128,9 @@ function Room(props) {
     addSnack('Microphone muted');
   };
 
-  const exitSnackbar = () => setSnack(undefined);
+  const endCall = () => {};
+
+  const transferFile = () => {};
 
   return (
     <div className="container">
@@ -218,48 +222,72 @@ function Room(props) {
           </div>
         </div>
         <div className="controls">
-          {cameraIsOn ? (
-            <Tooltip title="Turn camera off" aria-label="turn camera off">
-              <Fab color="default" onClick={turnCameraOff}>
-                <VideocamIcon />
-              </Fab>
-            </Tooltip>
-          ) : (
-            <Tooltip title="Turn camera on" aria-label="turn camera on">
-              <Fab color="secondary" onClick={turnCameraOn}>
-                <VideocamOffIcon />
-              </Fab>
-            </Tooltip>
-          )}
-          {micIsOn ? (
-            <Tooltip
-              title="Turn microphone off"
-              aria-label="turn microphone off"
-            >
-              <Fab color="default" onClick={turnMicOff}>
-                <MicIcon />
-              </Fab>
-            </Tooltip>
-          ) : (
-            <Tooltip title="Turn microphone on" aria-label="turn microphone on">
-              <Fab color="secondary" onClick={turnMicOn}>
-                <MicOffIcon />
-              </Fab>
-            </Tooltip>
-          )}
+          <div>
+            {cameraIsOn ? (
+              <Tooltip title="Turn camera off" aria-label="turn camera off">
+                <Fab color="default" onClick={turnCameraOff}>
+                  <VideocamIcon />
+                </Fab>
+              </Tooltip>
+            ) : (
+              <Tooltip title="Turn camera on" aria-label="turn camera on">
+                <Fab color="secondary" onClick={turnCameraOn}>
+                  <VideocamOffIcon />
+                </Fab>
+              </Tooltip>
+            )}
+            {micIsOn ? (
+              <Tooltip
+                title="Turn microphone off"
+                aria-label="turn microphone off"
+              >
+                <Fab color="default" onClick={turnMicOff}>
+                  <MicIcon />
+                </Fab>
+              </Tooltip>
+            ) : (
+              <Tooltip
+                title="Turn microphone on"
+                aria-label="turn microphone on"
+              >
+                <Fab color="secondary" onClick={turnMicOn}>
+                  <MicOffIcon />
+                </Fab>
+              </Tooltip>
+            )}
 
-          {chatPanelIsOpen ? (
-            <Tooltip title="Close chat panel" aria-label="close chat panel">
-              <Fab color="default" onClick={closeChatPanel}>
-                <ChatIcon />
-              </Fab>
-            </Tooltip>
-          ) : (
-            <Tooltip title="Open chat panel" aria-label="open chat panel">
-              <Fab color="default" onClick={openChatPanel}>
-                <CloseChatIcon />
-              </Fab>
-            </Tooltip>
+            {chatPanelIsOpen ? (
+              <Tooltip title="Close chat panel" aria-label="close chat panel">
+                <Fab color="default" onClick={closeChatPanel}>
+                  <ChatIcon />
+                </Fab>
+              </Tooltip>
+            ) : (
+              <Tooltip title="Open chat panel" aria-label="open chat panel">
+                <Fab color="default" onClick={openChatPanel}>
+                  <CloseChatIcon />
+                </Fab>
+              </Tooltip>
+            )}
+          </div>
+
+          {!alone && (
+            <>
+              <div>
+                <Tooltip title="Transfer file" aria-label="transfer file">
+                  <Fab color="default" onClick={transferFile}>
+                    <AttachFileIcon />
+                  </Fab>
+                </Tooltip>
+              </div>
+              <div>
+                <Tooltip title="End call" aria-label="end call">
+                  <Fab color="secondary" onClick={endCall}>
+                    <CallEndIcon />
+                  </Fab>
+                </Tooltip>
+              </div>
+            </>
           )}
         </div>
         <CustomSnackbar
