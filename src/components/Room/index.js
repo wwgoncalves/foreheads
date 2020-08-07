@@ -8,6 +8,7 @@ import {
   Snackbar,
   Slide,
   Link,
+  Button,
   colors,
 } from '@material-ui/core';
 
@@ -130,18 +131,24 @@ function Room(props) {
   return (
     <div className="container">
       <header>
-        <span>Room ID: </span>
-        <strong>
-          <span id="room-id">{roomID}</span>
-        </strong>
-        <IconButton
-          component={Link}
-          onClick={() =>
-            window.open(`whatsapp://send?text=${encodeURIComponent(roomID)}`)
-          }
-        >
-          <WhatsAppIcon style={{ color: colors.green[500] }} />
-        </IconButton>
+        <div>
+          <span>Room ID:</span>
+          <strong>
+            <span id="room-id">{roomID}</span>
+          </strong>
+        </div>
+        <Tooltip title="Share on WhatsApp" aria-label="share on whatsapp">
+          <Button
+            className="whatsapp"
+            size="small"
+            onClick={() =>
+              window.open(`whatsapp://send?text=${encodeURIComponent(roomID)}`)
+            }
+            startIcon={<WhatsAppIcon />}
+          >
+            Share
+          </Button>
+        </Tooltip>
       </header>
       <main>
         <div className="videocall">

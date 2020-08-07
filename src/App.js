@@ -39,13 +39,13 @@ function App(props) {
 
   return (
     <>
-      <Dialog
-        handleCreateNewRoom={handleCreateNewRoom}
-        handleJoinExistingRoom={handleJoinExistingRoom}
-      />
-      {chosen && (
-        <Room isCaller={isCaller} roomID={roomID} firebase={firebase} />
+      {false && (
+        <Dialog
+          handleCreateNewRoom={handleCreateNewRoom}
+          handleJoinExistingRoom={handleJoinExistingRoom}
+        />
       )}
+      {true && <Room isCaller={isCaller} roomID="true" firebase={firebase} />}
     </>
   );
 }

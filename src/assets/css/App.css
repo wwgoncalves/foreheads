@@ -11,11 +11,24 @@
 
 header {
   height: var(--headerHeight);
-  background: linear-gradient(-90deg, transparent, #243a66);
+  background-color: var(--appBackgroundColor);
+  padding: 0 1rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
-header a {
-  color: #fff;
-  text-decoration: none;
+header > div {
+  display: flex;
+  align-items: center;
+}
+#room-id {
+  margin-left: 1rem;
+  font-family: monospace;
+}
+.whatsapp {
+  color: #fafafa !important;
+  background-color: var(--whatsappColor) !important;
 }
 
 main {

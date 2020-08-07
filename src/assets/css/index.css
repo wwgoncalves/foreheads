@@ -1,6 +1,7 @@
 :root {
   --appBackgroundColor: rgb(40, 44, 52);
   --headerHeight: 3rem;
+  --whatsappColor: #25d366;
 }
 
 * {
