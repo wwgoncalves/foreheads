@@ -28,6 +28,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 
   background-color: var(--appBackgroundColor);
+
+  padding: 0 0.1rem;
 }
 
 code {

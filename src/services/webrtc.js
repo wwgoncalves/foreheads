@@ -9,7 +9,7 @@ export default class WebRTC {
     setAlone
   ) {
     this.database = firebaseRTDB; // Signalling server // ??? here ???!!
-    this.roomID = roomID; // here?!?
+    this.roomID = roomID || 'teste'; // here?!?
     this.setAlone = setAlone; // here??!
 
     this.myID = myID || Math.floor(Math.random() * 1000000000);
@@ -28,7 +28,14 @@ export default class WebRTC {
     this.myVideo = myVideoElement;
     this.theirVideo = theirVideoElement;
 
-    this.constraints = { audio: true, video: true };
+    // this.constraints = { audio: true, video: true };
+    this.constraints = {
+      audio: true,
+      video: {
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+    };
 
     this.sendMessage = this.sendMessage.bind(this);
     this.readMessage = this.readMessage.bind(this);
@@ -119,7 +126,18 @@ export default class WebRTC {
       const stream = await navigator.mediaDevices.getUserMedia(
         this.constraints
       );
-      stream.getTracks().forEach((track) => this.pc.addTrack(track, stream));
+      console.log('STREAM: ', stream);
+      console.log('TRACKS: ', stream.getTracks());
+
+      stream.getTracks().forEach((track) => {
+        if (track.kind === 'video') {
+          console.log('VIDEO SOURCE LABEL: ', track.label);
+          console.log('VIDEO WIDTH MAX: ', track.getCapabilities().width.max);
+          console.log('VIDEO HEIGHT MAX: ', track.getCapabilities().height.max);
+        }
+
+        this.pc.addTrack(track, stream);
+      });
 
       this.myVideo.srcObject = stream;
 

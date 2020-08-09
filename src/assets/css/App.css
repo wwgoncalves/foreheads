@@ -12,26 +12,35 @@
 header {
   height: var(--headerHeight);
   background-color: var(--appBackgroundColor);
-  padding: 0 1rem;
+  /* padding: 0 0.25rem; */
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-header > div {
+/* header > div {
   display: flex;
   align-items: center;
 
-  color: var(--muiDefaultColor);
-  background-color: var(--muiDefaultBgColor);
+  color: var(--muiDefaultBgColor);
+  border: 1px solid var(--muiDefaultBgColor);
   border-radius: 4px;
-  padding: 0 0.25rem;
-}
+  padding: 0 0.5rem;
+} */
 #room-id {
-  margin-left: 1rem;
   font-family: monospace;
+  color: var(--muiDefaultColor);
+  background-color: var(--muiSecondaryBgColor);
+  /* /* border: 1px solid var(--muiDefaultBgColor); */
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
 }
+/* #room-id::selection {
+  color: var(--muiSecondaryColor);
+  background-color: var(--muiSecondaryBgColor);
+} */
 .whatsapp {
+  margin-left: 1rem !important;
   color: var(--whatsappColor) !important;
   background-color: var(--whatsappBgColor) !important;
 }
@@ -55,17 +64,20 @@ main {
 .videocall .someone {
   position: relative;
 
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: calc(100vh - var(--headerHeight));
+
+  resize: both;
+  overflow: hidden;
+
   /* border: 1px solid #ff0;
   background: repeating-linear-gradient(
     135deg,
     transparent 0 10px,
     #ff0 10px 12px
   ); */
-
-  max-width: 100vw;
-  max-height: calc(100vh - var(--headerHeight));
-  width: 100%;
-  height: 100%;
 }
 .videocall .someone video {
   /* background-color: #7fff0077; */
@@ -80,28 +92,55 @@ main {
 .videocall .me {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
+  /* margin-left: 0.2rem; */
 
-  /* border: 1px solid #0ff;
-  background: repeating-linear-gradient(
+  transform-origin: top left;
+  transform: scale(0.15);
+
+  transition: transform 500ms linear;
+
+  resize: both;
+  overflow: hidden;
+
+  /* width: 640px;
+  height: 480px; */
+  /* max-width: 640px;
+  max-height: 480px; */
+
+  /* border: 1px solid #0ff; */
+  /* background: repeating-linear-gradient(
     45deg,
     var(--appBackgroundColor) 0 10px,
     #0ff 10px 12px
   ); */
-
-  width: 15%;
-  height: 15%;
-
-  transition: width 500ms linear, height 500ms linear;
 }
 .videocall .me.alone {
+  margin: 0;
+  transform: scale(1);
+
   width: 100%;
   height: 100%;
+  max-width: 100vw;
+  max-height: calc(100vh - var(--headerHeight));
 }
 .videocall .me video {
   /* background-color: #ff634777; */
-  width: 100%;
-  height: 100%;
+
+  /* width: 100%;
+  height: 100%; */
+
+  /* resize: both;
+  overflow: hidden; */
+
+  /* width: 640px;
+  height: 480px; */
+
+  /* max-width: 640px;
+  max-height: 480px; */
+
+  /* max-width: 1280px;
+  max-height: 720px; */
 }
 /* .videocall .me::before {
   position: absolute;
@@ -167,19 +206,25 @@ main {
 
 .controls {
   position: fixed;
-  right: calc(50vw - 300px);
+  left: calc(50vw - 50vmin);
   bottom: 1vh;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  width: 600px;
-  height: 60px;
-  opacity: 0.3;
+  width: 100vmin;
+  height: 80px;
+  opacity: 0.2;
   transition: opacity 300ms linear;
 }
 .controls div {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.controls div:nth-last-child(1) {
   flex: 1;
   display: flex;
   align-items: center;

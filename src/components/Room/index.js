@@ -84,7 +84,7 @@ function Room(props) {
     setChatPanelIsOpen(true);
 
     document.querySelector('.textchat').style.display = 'flex';
-    document.querySelector('.message input').focus();
+    // document.querySelector('.message input').focus();
   };
 
   const closeChatPanel = () => {
@@ -135,16 +135,15 @@ function Room(props) {
   return (
     <div className="container">
       <header>
-        <div>
-          <span>Room ID:</span>
+        <Tooltip title="Room ID" aria-label="room id">
           <strong>
             <span id="room-id">{roomID}</span>
           </strong>
-        </div>
+        </Tooltip>
         <Tooltip title="Share on WhatsApp" aria-label="share on whatsapp">
           <Button
             className="whatsapp"
-            size="small"
+            size="medium"
             onClick={() =>
               window.open(`whatsapp://send?text=${encodeURIComponent(roomID)}`)
             }
@@ -178,30 +177,6 @@ function Room(props) {
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
               eiusmod tempor incididunt ut labore et dolore?
             </span>
-            {/* <span className="theirs">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore?
-            </span>
-            <span className="mine">
-              Duis aute irure dolor in reprehenderit in voluptate velit esse
-              cillum dolore eu fugiat.
-            </span>
-            <span className="mine">
-              Duis aute irure dolor in reprehenderit in voluptate velit esse
-              cillum dolore eu fugiat.
-            </span>
-            <span className="mine">
-              Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-              accusantium?
-            </span>
-            <span className="theirs">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore?
-            </span>
-            <span className="mine">
-              Duis aute irure dolor in reprehenderit in voluptate velit esse
-              cillum dolore eu fugiat.
-            </span> */}
             <span className="theirs">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
               eiusmod tempor incididunt ut labore et dolore?
@@ -255,25 +230,27 @@ function Room(props) {
                 </Fab>
               </Tooltip>
             )}
-
-            {chatPanelIsOpen ? (
-              <Tooltip title="Close chat panel" aria-label="close chat panel">
-                <Fab color="default" onClick={closeChatPanel}>
-                  <ChatIcon />
-                </Fab>
-              </Tooltip>
-            ) : (
-              <Tooltip title="Open chat panel" aria-label="open chat panel">
-                <Fab color="default" onClick={openChatPanel}>
-                  <CloseChatIcon />
-                </Fab>
-              </Tooltip>
-            )}
           </div>
 
           {!alone && (
             <>
               <div>
+                {chatPanelIsOpen ? (
+                  <Tooltip
+                    title="Close chat panel"
+                    aria-label="close chat panel"
+                  >
+                    <Fab color="default" onClick={closeChatPanel}>
+                      <ChatIcon />
+                    </Fab>
+                  </Tooltip>
+                ) : (
+                  <Tooltip title="Open chat panel" aria-label="open chat panel">
+                    <Fab color="default" onClick={openChatPanel}>
+                      <CloseChatIcon />
+                    </Fab>
+                  </Tooltip>
+                )}
                 <Tooltip title="Transfer file" aria-label="transfer file">
                   <Fab color="default" onClick={transferFile}>
                     <AttachFileIcon />
