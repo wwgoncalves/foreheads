@@ -8,6 +8,7 @@ import {
   Snackbar,
   Slide,
   Button,
+  ButtonGroup,
 } from '@material-ui/core';
 
 import SendIcon from '@material-ui/icons/Send';
@@ -21,6 +22,7 @@ import CloseIcon from '@material-ui/icons/Close';
 import WhatsAppIcon from '@material-ui/icons/WhatsApp';
 import CallEndIcon from '@material-ui/icons/CallEnd';
 import AttachFileIcon from '@material-ui/icons/AttachFile';
+import CopyIcon from '@material-ui/icons/FileCopyOutlined';
 
 import WebRTC from '~/services/webrtc';
 
@@ -46,6 +48,8 @@ function CustomSnackbar(props) {
 function Room(props) {
   const { isCaller, roomID, firebase } = props;
 
+  const roomIdElement = React.useRef(null);
+  const [webRTC, setWebRTC] = React.useState(null);
   const [alone, setAlone] = React.useState(true);
   const [cameraIsOn, setCameraIsOn] = React.useState(true);
   const [micIsOn, setMicIsOn] = React.useState(true);
@@ -55,18 +59,26 @@ function Room(props) {
   const [snack, setSnack] = React.useState(undefined);
 
   React.useEffect(() => {
-    const webrtc = new WebRTC(
-      '',
-      '',
-      document.getElementById('myVideo'),
-      document.getElementById('theirVideo'),
-      firebase,
-      roomID,
-      setAlone
+    setWebRTC(
+      new WebRTC(
+        '',
+        '',
+        document.getElementById('myVideo'),
+        document.getElementById('theirVideo'),
+        firebase,
+        roomID,
+        setAlone
+      )
     );
 
-    webrtc.initMedia(isCaller);
+    // webRTC.initMedia(isCaller);
   }, []);
+
+  React.useEffect(() => {
+    if (webRTC) {
+      webRTC.initMedia(isCaller);
+    }
+  }, [webRTC]);
 
   React.useEffect(() => {
     if (snackPack.length && !snack) {
@@ -111,47 +123,101 @@ function Room(props) {
   const exitSnackbar = () => setSnack(undefined);
 
   const turnCameraOn = () => {
+    if (webRTC) {
+      webRTC.unmuteTrack('video');
+    }
+
     setCameraIsOn(true);
     addSnack('Camera turned on');
   };
   const turnCameraOff = () => {
+    if (webRTC) {
+      webRTC.muteTrack('video');
+    }
+
     setCameraIsOn(false);
     addSnack('Camera turned off');
   };
 
   const turnMicOn = () => {
+    if (webRTC) {
+      webRTC.unmuteTrack('audio');
+    }
+
     setMicIsOn(true);
     addSnack('Microphone unmuted');
   };
   const turnMicOff = () => {
+    if (webRTC) {
+      webRTC.muteTrack('audio');
+    }
+
     setMicIsOn(false);
     addSnack('Microphone muted');
   };
 
-  const endCall = () => {};
+  const endCall = () => {
+    if (webRTC) {
+      webRTC.endPeerConnection();
+    }
+  };
 
   const transferFile = () => {};
+
+  const copyToClipboard = async () => {
+    const currentNode = roomIdElement.current;
+    const selection = window.getSelection();
+    const range = document.createRange();
+
+    range.selectNodeContents(currentNode);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    const selectedContent = selection.focusNode.innerText;
+    try {
+      await navigator.clipboard.writeText(selectedContent);
+      console.log('ROOM ID COPIED TO CLIPBOARD');
+    } catch (error) {
+      console.log(error);
+    }
+    selection.removeAllRanges();
+  };
 
   return (
     <div className="container">
       <header>
         <Tooltip title="Room ID" aria-label="room id">
           <strong>
-            <span id="room-id">{roomID}</span>
+            <span id="room-id" ref={roomIdElement}>
+              {roomID}
+            </span>
           </strong>
         </Tooltip>
-        <Tooltip title="Share on WhatsApp" aria-label="share on whatsapp">
-          <Button
-            className="whatsapp"
-            size="medium"
-            onClick={() =>
-              window.open(`whatsapp://send?text=${encodeURIComponent(roomID)}`)
-            }
-            startIcon={<WhatsAppIcon />}
+        <ButtonGroup aria-label="button group">
+          <Tooltip
+            title="Copy to clipboard"
+            aria-label="copy room id to clipboard"
           >
-            Share
-          </Button>
-        </Tooltip>
+            <Button variant="contained" size="small" onClick={copyToClipboard}>
+              <CopyIcon fontSize="small" />
+            </Button>
+          </Tooltip>
+          <Tooltip
+            title="Share on WhatsApp"
+            aria-label="share room id on whatsapp"
+          >
+            <Button
+              className="whatsapp"
+              size="small"
+              onClick={() =>
+                window.open(
+                  `whatsapp://send?text=${encodeURIComponent(roomID)}`
+                )
+              }
+            >
+              <WhatsAppIcon fontSize="small" />
+            </Button>
+          </Tooltip>
+        </ButtonGroup>
       </header>
       <main>
         <div className="videocall">

@@ -48,6 +48,8 @@ function Dialog(props) {
       <MUDialog
         open={open}
         onClose={handleClose}
+        disableBackdropClick
+        disableEscapeKeyDown
         aria-labelledby="form-dialog-title"
       >
         {!joinSelected ? (
@@ -84,6 +86,7 @@ function Dialog(props) {
                 To join an existing room, provide its identifier below.
               </DialogContentText>
               <TextField
+                required
                 id="existing-room-id"
                 label="Existing Room ID"
                 type="text"

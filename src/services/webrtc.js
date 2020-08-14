@@ -25,6 +25,7 @@ export default class WebRTC {
       ],
     };
 
+    this.stream = null;
     this.myVideo = myVideoElement;
     this.theirVideo = theirVideoElement;
 
@@ -42,18 +43,14 @@ export default class WebRTC {
     this.initMedia = this.initMedia.bind(this);
     this.onICECandidateHandler = this.onICECandidateHandler.bind(this);
     this.onTrackHandler = this.onTrackHandler.bind(this);
+    this.muteTrack = this.muteTrack.bind(this);
+    this.unmuteTrack = this.unmuteTrack.bind(this);
+    this.endPeerConnection = this.endPeerConnection.bind(this);
 
     // this.pc = new RTCPeerConnection(this.servers);
     this.pc = new RTCPeerConnection({});
 
     this.pc.onicecandidate = this.onICECandidateHandler;
-
-    /// / this.pc.onaddstream = (event) => {
-    /// /   console.log('ONADDSTREAM');
-
-    /// /   this.theirVideo.srcObject = event.stream;
-    /// /   this.setAlone(false);
-    /// / };
     this.pc.ontrack = this.onTrackHandler;
 
     this.database.subscribe(this.roomID, 'child_added', this.readMessage);
@@ -129,14 +126,16 @@ export default class WebRTC {
       console.log('STREAM: ', stream);
       console.log('TRACKS: ', stream.getTracks());
 
-      stream.getTracks().forEach((track) => {
+      this.stream = stream;
+
+      this.stream.getTracks().forEach((track) => {
         if (track.kind === 'video') {
           console.log('VIDEO SOURCE LABEL: ', track.label);
           console.log('VIDEO WIDTH MAX: ', track.getCapabilities().width.max);
           console.log('VIDEO HEIGHT MAX: ', track.getCapabilities().height.max);
         }
 
-        this.pc.addTrack(track, stream);
+        this.pc.addTrack(track, this.stream);
       });
 
       this.myVideo.srcObject = stream;
@@ -170,17 +169,42 @@ export default class WebRTC {
     console.log('ONTRACK');
 
     if (this.theirVideo.srcObject) return;
-    this.theirVideo.srcObject = event.streams[0];
+    [this.theirVideo.srcObject] = event.streams;
     this.setAlone(false);
   }
+
+  async muteTrack(kind) {
+    // const stream = await navigator.mediaDevices.getUserMedia(this.constraints);
+    this.stream.getTracks().forEach((track) => {
+      if (track.kind === kind) {
+        // eslint-disable-next-line no-param-reassign
+        track.enabled = false;
+        console.log(kind, 'MUTED');
+
+        // this.pc.addTrack(track, this.stream);
+      }
+    });
+  }
+
+  async unmuteTrack(kind) {
+    // const stream = await navigator.mediaDevices.getUserMedia(this.constraints);
+    this.stream.getTracks().forEach((track) => {
+      if (track.kind === kind) {
+        // eslint-disable-next-line no-param-reassign
+        track.enabled = true;
+        console.log(kind, 'UNMUTED');
+
+        // this.pc.addTrack(track, this.stream);
+      }
+    });
+  }
+
+  endPeerConnection() {
+    this.pc.close();
+    console.log('PEERCONNECTION CLOSED');
+    this.stream.getTracks().forEach((track) => {
+      track.stop();
+    });
+    console.log('ALL TRACKS STOPPED');
+  }
 }
-
-// "Draft/inspiration" from https://websitebeaver.com/insanely-simple-webrtc-video-chat-using-firebase-with-codepen-demo
-/// //////////////////////////////////////////////////////////////////////////////
-
-// const database = firebase.database().ref();
-
-// const myVideo = document.getElementById('myVideo');
-// const theirVideo = document.getElementById('theirVideo');
-
-/// //////////////////////////////////////////////////////////////////////////////

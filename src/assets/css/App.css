@@ -21,11 +21,6 @@ header {
 /* header > div {
   display: flex;
   align-items: center;
-
-  color: var(--muiDefaultBgColor);
-  border: 1px solid var(--muiDefaultBgColor);
-  border-radius: 4px;
-  padding: 0 0.5rem;
 } */
 #room-id {
   font-family: monospace;
@@ -33,14 +28,17 @@ header {
   background-color: var(--muiSecondaryBgColor);
   /* /* border: 1px solid var(--muiDefaultBgColor); */
   border-radius: 4px;
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.25rem;
 }
 /* #room-id::selection {
   color: var(--muiSecondaryColor);
   background-color: var(--muiSecondaryBgColor);
 } */
 .whatsapp {
-  margin-left: 1rem !important;
+  margin-left: 0.25rem !important;
+  min-width: unset !important;
+  /* padding: 0 !important; */
+
   color: var(--whatsappColor) !important;
   background-color: var(--whatsappBgColor) !important;
 }
