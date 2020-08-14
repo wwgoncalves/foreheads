@@ -9,7 +9,7 @@ export default class WebRTC {
     setAlone
   ) {
     this.database = firebaseRTDB; // Signalling server // ??? here ???!!
-    this.roomID = roomID || 'teste'; // here?!?
+    this.roomID = roomID; // here?!?
     this.setAlone = setAlone; // here??!
 
     this.myID = myID || Math.floor(Math.random() * 1000000000);
@@ -17,11 +17,6 @@ export default class WebRTC {
       iceServers: [
         { urls: 'stun:stun.services.mozilla.com' },
         { urls: 'stun:stun.l.google.com:19302' },
-        // {
-        //   urls: 'turn:numb.viagenie.ca',
-        //   credential: 'webrtc',
-        //   username: 'websitebeaver@mail.com',
-        // },
       ],
     };
 
@@ -29,7 +24,6 @@ export default class WebRTC {
     this.myVideo = myVideoElement;
     this.theirVideo = theirVideoElement;
 
-    // this.constraints = { audio: true, video: true };
     this.constraints = {
       audio: true,
       video: {
@@ -43,15 +37,18 @@ export default class WebRTC {
     this.initMedia = this.initMedia.bind(this);
     this.onICECandidateHandler = this.onICECandidateHandler.bind(this);
     this.onTrackHandler = this.onTrackHandler.bind(this);
+    this.onICEConnectionStateChange = this.onICEConnectionStateChange.bind(
+      this
+    );
     this.muteTrack = this.muteTrack.bind(this);
     this.unmuteTrack = this.unmuteTrack.bind(this);
     this.endPeerConnection = this.endPeerConnection.bind(this);
 
-    // this.pc = new RTCPeerConnection(this.servers);
-    this.pc = new RTCPeerConnection({});
+    this.pc = new RTCPeerConnection(this.servers);
 
     this.pc.onicecandidate = this.onICECandidateHandler;
     this.pc.ontrack = this.onTrackHandler;
+    this.pc.oniceconnectionstatechange = this.onICEConnectionStateChange;
 
     this.database.subscribe(this.roomID, 'child_added', this.readMessage);
   }
@@ -70,11 +67,6 @@ export default class WebRTC {
   async readMessage(data) {
     console.log('READMSG: ', data.val());
     if (data.val() === null) return;
-
-    // const content = data.val();
-    // const timeKey = Object.keys(content)[0];
-    // const msg = JSON.parse(content[timeKey].message);
-    // const { sender } = content[timeKey];
 
     const msg = JSON.parse(data.val().message);
     const { sender } = data.val();
@@ -95,12 +87,6 @@ export default class WebRTC {
             new RTCSessionDescription(msg.sdp)
           );
 
-          const stream = await navigator.mediaDevices.getUserMedia(
-            this.constraints
-          );
-          stream
-            .getTracks()
-            .forEach((track) => this.pc.addTrack(track, stream));
           await this.pc.setLocalDescription(await this.pc.createAnswer());
 
           this.sendMessage(
@@ -173,28 +159,26 @@ export default class WebRTC {
     this.setAlone(false);
   }
 
+  onICEConnectionStateChange() {
+    console.log('ICE CONNECTION STATE CHANGE: ', this.pc.iceConnectionState);
+  }
+
   async muteTrack(kind) {
-    // const stream = await navigator.mediaDevices.getUserMedia(this.constraints);
     this.stream.getTracks().forEach((track) => {
       if (track.kind === kind) {
         // eslint-disable-next-line no-param-reassign
         track.enabled = false;
         console.log(kind, 'MUTED');
-
-        // this.pc.addTrack(track, this.stream);
       }
     });
   }
 
   async unmuteTrack(kind) {
-    // const stream = await navigator.mediaDevices.getUserMedia(this.constraints);
     this.stream.getTracks().forEach((track) => {
       if (track.kind === kind) {
         // eslint-disable-next-line no-param-reassign
         track.enabled = true;
         console.log(kind, 'UNMUTED');
-
-        // this.pc.addTrack(track, this.stream);
       }
     });
   }
