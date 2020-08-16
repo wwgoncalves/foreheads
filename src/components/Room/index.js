@@ -46,10 +46,12 @@ function CustomSnackbar(props) {
 }
 
 function Room(props) {
-  const { isCaller, roomID, firebase } = props;
+  const { isCaller, roomId } = props;
 
   const roomIdElement = React.useRef(null);
+
   const [webRTC, setWebRTC] = React.useState(null);
+
   const [alone, setAlone] = React.useState(true);
   const [cameraIsOn, setCameraIsOn] = React.useState(true);
   const [micIsOn, setMicIsOn] = React.useState(true);
@@ -59,25 +61,24 @@ function Room(props) {
   const [snack, setSnack] = React.useState(undefined);
 
   React.useEffect(() => {
-    setWebRTC(
-      new WebRTC(
-        '',
-        '',
-        document.getElementById('myVideo'),
-        document.getElementById('theirVideo'),
-        firebase,
-        roomID,
-        setAlone
-      )
-    );
+    async function buildWebRTCObject() {
+      const myVideoElement = document.getElementById('myVideo');
+      const theirVideoElement = document.getElementById('theirVideo');
 
-    // webRTC.initMedia(isCaller);
+      setWebRTC(
+        await WebRTC.build(myVideoElement, theirVideoElement, roomId, setAlone)
+      );
+    }
+    buildWebRTCObject();
   }, []);
 
   React.useEffect(() => {
-    if (webRTC) {
-      webRTC.initMedia(isCaller);
+    async function initWebRTCSession() {
+      if (webRTC) {
+        await webRTC.init(isCaller);
+      }
     }
+    initWebRTCSession();
   }, [webRTC]);
 
   React.useEffect(() => {
@@ -188,7 +189,7 @@ function Room(props) {
         <Tooltip title="Room ID" aria-label="room id">
           <strong>
             <span id="room-id" ref={roomIdElement}>
-              {roomID}
+              {roomId}
             </span>
           </strong>
         </Tooltip>
@@ -210,7 +211,7 @@ function Room(props) {
               size="small"
               onClick={() =>
                 window.open(
-                  `whatsapp://send?text=${encodeURIComponent(roomID)}`
+                  `whatsapp://send?text=${encodeURIComponent(roomId)}`
                 )
               }
             >

@@ -1,40 +1,24 @@
+import Signalling from '~/services/signalling';
+
 export default class WebRTC {
-  constructor(
-    myID,
-    servers,
-    myVideoElement,
-    theirVideoElement,
-    firebaseRTDB,
-    roomID,
-    setAlone
-  ) {
-    this.database = firebaseRTDB; // Signalling server // ??? here ???!!
-    this.roomID = roomID; // here?!?
+  constructor(stream, myVideoElement, theirVideoElement, roomId, setAlone) {
+    this.signallingChannel = new Signalling(roomId);
     this.setAlone = setAlone; // here??!
 
-    this.myID = myID || Math.floor(Math.random() * 1000000000);
-    this.servers = servers || {
+    this.myID = Math.floor(Math.random() * 1000000000);
+    this.servers = {
       iceServers: [
         { urls: 'stun:stun.services.mozilla.com' },
         { urls: 'stun:stun.l.google.com:19302' },
       ],
     };
 
-    this.stream = null;
     this.myVideo = myVideoElement;
     this.theirVideo = theirVideoElement;
 
-    this.constraints = {
-      audio: true,
-      video: {
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-      },
-    };
-
+    this.init = this.init.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
     this.readMessage = this.readMessage.bind(this);
-    this.initMedia = this.initMedia.bind(this);
     this.onICECandidateHandler = this.onICECandidateHandler.bind(this);
     this.onTrackHandler = this.onTrackHandler.bind(this);
     this.onICEConnectionStateChange = this.onICEConnectionStateChange.bind(
@@ -44,24 +28,84 @@ export default class WebRTC {
     this.unmuteTrack = this.unmuteTrack.bind(this);
     this.endPeerConnection = this.endPeerConnection.bind(this);
 
+    this.stream = stream;
     this.pc = new RTCPeerConnection(this.servers);
 
     this.pc.onicecandidate = this.onICECandidateHandler;
     this.pc.ontrack = this.onTrackHandler;
     this.pc.oniceconnectionstatechange = this.onICEConnectionStateChange;
 
-    this.database.subscribe(this.roomID, 'child_added', this.readMessage);
+    this.signallingChannel.subscribe(this.readMessage);
+  }
+
+  static async build(myVideoElement, theirVideoElement, roomId, setAlone) {
+    const constraints = {
+      audio: true,
+      video: {
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+    };
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('STREAM: ', stream);
+      console.log('TRACKS: ', stream.getTracks());
+
+      return new WebRTC(
+        stream,
+        myVideoElement,
+        theirVideoElement,
+        roomId,
+        setAlone
+      );
+    } catch (error) {
+      console.log(error);
+
+      return null;
+    }
+  }
+
+  async init(isCaller) {
+    try {
+      this.stream.getTracks().forEach((track) => {
+        if (track.kind === 'video') {
+          console.log('VIDEO SOURCE LABEL: ', track.label);
+          console.log('VIDEO WIDTH MAX: ', track.getCapabilities().width.max);
+          console.log('VIDEO HEIGHT MAX: ', track.getCapabilities().height.max);
+        }
+
+        this.pc.addTrack(track, this.stream);
+      });
+
+      this.myVideo.srcObject = this.stream;
+
+      if (isCaller) {
+        console.log('IS THE CALLER, SEND OFFER');
+
+        await this.pc.setLocalDescription(await this.pc.createOffer());
+
+        this.sendMessage(
+          this.myID,
+          JSON.stringify({ sdp: this.pc.localDescription })
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   sendMessage(senderID, data) {
     console.log('SENDMSG');
 
-    this.database.save(this.roomID, {
+    const dataObject = {
       [`${new Date().getTime()}`]: {
         sender: senderID,
         message: data,
       },
-    });
+    };
+
+    this.signallingChannel.send(dataObject);
   }
 
   async readMessage(data) {
@@ -83,9 +127,11 @@ export default class WebRTC {
         console.log('RECEIVED OFFER, SEND ANSWER');
 
         try {
-          await this.pc.setRemoteDescription(
-            new RTCSessionDescription(msg.sdp)
-          );
+          await this.pc.setRemoteDescription(msg.sdp);
+
+          // this.stream.getTracks().forEach((track) => {
+          //   this.pc.addTrack(track, this.stream);
+          // });
 
           await this.pc.setLocalDescription(await this.pc.createAnswer());
 
@@ -99,45 +145,8 @@ export default class WebRTC {
       } else if (msg.sdp.type === 'answer') {
         console.log('RECEIVED ANSWER');
 
-        this.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+        this.pc.setRemoteDescription(msg.sdp);
       }
-    }
-  }
-
-  async initMedia(isCaller) {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia(
-        this.constraints
-      );
-      console.log('STREAM: ', stream);
-      console.log('TRACKS: ', stream.getTracks());
-
-      this.stream = stream;
-
-      this.stream.getTracks().forEach((track) => {
-        if (track.kind === 'video') {
-          console.log('VIDEO SOURCE LABEL: ', track.label);
-          console.log('VIDEO WIDTH MAX: ', track.getCapabilities().width.max);
-          console.log('VIDEO HEIGHT MAX: ', track.getCapabilities().height.max);
-        }
-
-        this.pc.addTrack(track, this.stream);
-      });
-
-      this.myVideo.srcObject = stream;
-
-      if (isCaller) {
-        console.log('IS THE CALLER, SEND OFFER');
-
-        await this.pc.setLocalDescription(await this.pc.createOffer());
-
-        this.sendMessage(
-          this.myID,
-          JSON.stringify({ sdp: this.pc.localDescription })
-        );
-      }
-    } catch (error) {
-      console.error(error);
     }
   }
 
@@ -153,6 +162,7 @@ export default class WebRTC {
 
   onTrackHandler(event) {
     console.log('ONTRACK');
+    console.log('REMOTE STREAMS: ', event.streams);
 
     if (this.theirVideo.srcObject) return;
     [this.theirVideo.srcObject] = event.streams;

@@ -3,38 +3,26 @@ import React from 'react';
 import Dialog from '~/components/Dialog';
 import Room from '~/components/Room';
 
+import firebase from '~/services/firebase';
+
 import '~/assets/css/App.css';
 
-function App(props) {
-  const { firebase } = props;
-
+function App() {
   const [chosen, setChosen] = React.useState(false);
   const [isCaller, setIsCaller] = React.useState(false);
-  const [roomID, setRoomID] = React.useState('');
-
-  React.useEffect(() => {
-    console.dir(firebase);
-
-    // // DEBUG
-    // const tstKey = firebase.generateKey();
-    // firebase.subscribe(tstKey, 'value', (snapshot) => // OR 'child_added'
-    //   console.log(snapshot.val())
-    // );
-    // firebase.save(tstKey, { prop1: 'um', prop2: 'dois' });
-    // // DEBUG
-  }, [firebase]);
+  const [roomId, setRoomId] = React.useState('');
 
   const handleCreateNewRoom = () => {
     setChosen(true);
     setIsCaller(true);
     console.log('CREATE A NEW ROOM');
-    const newRoomID = firebase.generateKey();
-    setRoomID(newRoomID);
+    const newRoomId = firebase.generateKey();
+    setRoomId(newRoomId);
   };
-  const handleJoinExistingRoom = (existingRoomID) => {
+  const handleJoinExistingRoom = (existingRoomId) => {
     setChosen(true);
-    console.log('JOIN AN EXISTING ROOM: ', existingRoomID);
-    setRoomID(existingRoomID);
+    console.log('JOIN AN EXISTING ROOM: ', existingRoomId);
+    setRoomId(existingRoomId);
   };
 
   return (
@@ -45,9 +33,7 @@ function App(props) {
           handleJoinExistingRoom={handleJoinExistingRoom}
         />
       )}
-      {chosen && (
-        <Room isCaller={isCaller} roomID={roomID} firebase={firebase} />
-      )}
+      {chosen && <Room isCaller={isCaller} roomId={roomId} />}
     </>
   );
 }
