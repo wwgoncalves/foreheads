@@ -163,6 +163,13 @@ function Room(props) {
     }
   };
 
+  const sendMessage = () => {
+    if (webRTC) {
+      const message = document.querySelector('#textmessage').value;
+      webRTC.sendMessage({ message });
+    }
+  };
+
   const transferFile = () => {};
 
   const copyToClipboard = async () => {
@@ -255,10 +262,15 @@ function Room(props) {
           </div>
           <div className="message">
             <InputBase
+              id="textmessage"
               placeholder="Message..."
               inputProps={{ 'aria-label': 'type your message' }}
             />
-            <IconButton type="submit" aria-label="send message">
+            <IconButton
+              type="submit"
+              aria-label="send message"
+              onClick={sendMessage}
+            >
               <SendIcon />
             </IconButton>
           </div>

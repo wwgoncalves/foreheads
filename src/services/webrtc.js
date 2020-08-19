@@ -5,7 +5,7 @@ export default class WebRTC {
     this.signallingChannel = new Signalling(roomId);
     this.setAlone = setAlone; // here??!
 
-    this.myID = Math.floor(Math.random() * 1000000000);
+    this.myId = Math.floor(Math.random() * 1000000000);
     this.servers = {
       iceServers: [
         { urls: 'stun:stun.services.mozilla.com' },
@@ -17,13 +17,33 @@ export default class WebRTC {
     this.theirVideo = theirVideoElement;
 
     this.init = this.init.bind(this);
-    this.sendMessage = this.sendMessage.bind(this);
-    this.readMessage = this.readMessage.bind(this);
+
+    this.sendSignal = this.sendSignal.bind(this);
+    this.readSignal = this.readSignal.bind(this);
+
     this.onICECandidateHandler = this.onICECandidateHandler.bind(this);
     this.onTrackHandler = this.onTrackHandler.bind(this);
-    this.onICEConnectionStateChange = this.onICEConnectionStateChange.bind(
+    this.onICEConnectionStateChangeHandler = this.onICEConnectionStateChangeHandler.bind(
       this
     );
+    this.onConnectionStateChangeHandler = this.onConnectionStateChangeHandler.bind(
+      this
+    );
+
+    this.onDataChannelHandler = this.onDataChannelHandler.bind(this);
+    this.onDataChannelMessageHandler = this.onDataChannelMessageHandler.bind(
+      this
+    );
+    this.onDataChannelStateChangeHandler = this.onDataChannelStateChangeHandler.bind(
+      this
+    );
+
+    this.sendMessage = this.sendMessage.bind(this);
+    // this.readMessage = this.readMessage.bind(this);
+
+    // this.sendFile = this.sendFile.bind(this);
+    // this.readFile = this.readFile.bind(this);
+
     this.muteTrack = this.muteTrack.bind(this);
     this.unmuteTrack = this.unmuteTrack.bind(this);
     this.endPeerConnection = this.endPeerConnection.bind(this);
@@ -31,11 +51,17 @@ export default class WebRTC {
     this.stream = stream;
     this.pc = new RTCPeerConnection(this.servers);
 
+    this.messageDataChannel = this.pc.createDataChannel('messageDataChannel');
+    this.fileDataChannel = this.pc.createDataChannel('fileDataChannel');
+
     this.pc.onicecandidate = this.onICECandidateHandler;
     this.pc.ontrack = this.onTrackHandler;
-    this.pc.oniceconnectionstatechange = this.onICEConnectionStateChange;
+    this.pc.oniceconnectionstatechange = this.onICEConnectionStateChangeHandler;
+    this.pc.onconnectionstatechange = this.onConnectionStateChangeHandler;
 
-    this.signallingChannel.subscribe(this.readMessage);
+    this.pc.ondatachannel = this.onDataChannelHandler;
+
+    this.signallingChannel.subscribe(this.readSignal);
   }
 
   static async build(myVideoElement, theirVideoElement, roomId, setAlone) {
@@ -85,40 +111,37 @@ export default class WebRTC {
 
         await this.pc.setLocalDescription(await this.pc.createOffer());
 
-        this.sendMessage(
-          this.myID,
-          JSON.stringify({ sdp: this.pc.localDescription })
-        );
+        this.sendSignal(JSON.stringify({ sdp: this.pc.localDescription }));
       }
     } catch (error) {
       console.error(error);
     }
   }
 
-  sendMessage(senderID, data) {
-    console.log('SENDMSG');
+  sendSignal(data) {
+    console.log('SENDSIG');
 
     const dataObject = {
       [`${new Date().getTime()}`]: {
-        sender: senderID,
-        message: data,
+        sender: this.myId,
+        information: data,
       },
     };
 
     this.signallingChannel.send(dataObject);
   }
 
-  async readMessage(data) {
-    console.log('READMSG: ', data.val());
+  async readSignal(data) {
+    console.log('READSIG: ', data.val());
     if (data.val() === null) return;
 
-    const msg = JSON.parse(data.val().message);
+    const msg = JSON.parse(data.val().information);
     const { sender } = data.val();
 
     console.log('SENDER: ', sender);
-    console.log('MYID: ', this.myID);
+    console.log('MYID: ', this.myId);
 
-    if (sender !== this.myID) {
+    if (sender !== this.myId) {
       if (msg.ice !== undefined) {
         console.log('RECEIVED ICE');
 
@@ -135,10 +158,7 @@ export default class WebRTC {
 
           await this.pc.setLocalDescription(await this.pc.createAnswer());
 
-          this.sendMessage(
-            this.myID,
-            JSON.stringify({ sdp: this.pc.localDescription })
-          );
+          this.sendSignal(JSON.stringify({ sdp: this.pc.localDescription }));
         } catch (error) {
           console.error(error);
         }
@@ -154,7 +174,7 @@ export default class WebRTC {
     console.log('ONICE');
 
     if (event.candidate) {
-      this.sendMessage(this.myID, JSON.stringify({ ice: event.candidate }));
+      this.sendSignal(JSON.stringify({ ice: event.candidate }));
     } else {
       console.log('All ICE candidates have been sent.');
     }
@@ -169,9 +189,56 @@ export default class WebRTC {
     this.setAlone(false);
   }
 
-  onICEConnectionStateChange() {
+  onICEConnectionStateChangeHandler() {
     console.log('ICE CONNECTION STATE CHANGE: ', this.pc.iceConnectionState);
   }
+
+  onConnectionStateChangeHandler() {
+    console.log('CONNECTION STATE CHANGE: ', this.pc.connectionState);
+  }
+
+  onDataChannelHandler(event) {
+    const receiving = event.channel;
+    console.log('RECEIVING DC: ', receiving.label);
+    receiving.onmessage = this.onDataChannelMessageHandler;
+    receiving.onopen = this.onDataChannelStateChangeHandler;
+    receiving.onclose = this.onDataChannelStateChangeHandler;
+  }
+
+  onDataChannelMessageHandler(event) {
+    console.log('DC MESSAGE: ', event.target);
+    const data = JSON.parse(event.data);
+
+    console.log('DC MESSAGE DATA: ', JSON.stringify(data));
+
+    const dataChannelLabel = event.target.label;
+    switch (dataChannelLabel) {
+      case 'messageDataChannel':
+        this.readMessage(event.data);
+        break;
+      default:
+        console.log('TBD');
+    }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  onDataChannelStateChangeHandler(event) {
+    console.log('DC STATE CHANGE: ', event);
+  }
+
+  sendMessage(data) {
+    console.log('DC SEND MESSAGE: ', data);
+    this.messageDataChannel.send(
+      JSON.stringify({ ...data, sender: this.myId })
+    );
+  }
+
+  readMessage(data) {
+    console.log('DC READ MESSAGE: ', data);
+  }
+
+  // sendFile() {}
+  // readFile() {}
 
   async muteTrack(kind) {
     this.stream.getTracks().forEach((track) => {
