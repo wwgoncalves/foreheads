@@ -170,7 +170,35 @@ function Room(props) {
     }
   };
 
-  const transferFile = () => {};
+  const transferFile = (event) => {
+    function readFile(file) {
+      return new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => {
+          resolve(fr.result);
+        };
+        fr.onerror = () => {
+          reject(new Error('File reading failed.'));
+        };
+        fr.readAsArrayBuffer(file);
+      });
+    }
+
+    const file = event.target.files[0];
+
+    readFile(file)
+      .then((fileArrayBuffer) => {
+        if (webRTC) {
+          webRTC.sendFile({
+            fileName: file.name,
+            fileType: file.type,
+            fileSize: fileArrayBuffer.byteLength,
+            fileArrayBuffer,
+          });
+        }
+      })
+      .catch((error) => console.log(error));
+  };
 
   const copyToClipboard = async () => {
     const currentNode = roomIdElement.current;
@@ -331,9 +359,16 @@ function Room(props) {
                   </Tooltip>
                 )}
                 <Tooltip title="Transfer file" aria-label="transfer file">
-                  <Fab color="default" onClick={transferFile}>
-                    <AttachFileIcon />
-                  </Fab>
+                  <label htmlFor="transfer-file">
+                    <input
+                      type="file"
+                      id="transfer-file"
+                      onChange={transferFile}
+                    />
+                    <Fab color="default" component="span">
+                      <AttachFileIcon />
+                    </Fab>
+                  </label>
                 </Tooltip>
               </div>
               <div>

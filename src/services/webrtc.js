@@ -209,12 +209,15 @@ export default class WebRTC {
     console.log('DC MESSAGE: ', event.target);
     const data = JSON.parse(event.data);
 
-    console.log('DC MESSAGE DATA: ', JSON.stringify(data));
+    console.log('DC MESSAGE STRINGIFIED DATA: ', JSON.stringify(data));
 
     const dataChannelLabel = event.target.label;
     switch (dataChannelLabel) {
       case 'messageDataChannel':
         this.readMessage(event.data);
+        break;
+      case 'fileDataChannel':
+        this.readFile(event.data);
         break;
       default:
         console.log('TBD');
@@ -228,6 +231,7 @@ export default class WebRTC {
 
   sendMessage(data) {
     console.log('DC SEND MESSAGE: ', data);
+
     this.messageDataChannel.send(
       JSON.stringify({ ...data, sender: this.myId })
     );
@@ -237,8 +241,30 @@ export default class WebRTC {
     console.log('DC READ MESSAGE: ', data);
   }
 
-  // sendFile() {}
-  // readFile() {}
+  sendFile(fileData) {
+    console.log('DC SEND FILE');
+
+    const { fileName, fileType, fileSize, fileArrayBuffer } = fileData;
+    const maxChunkSize = 16000; // 16kB due to current browsers interoperability issues
+
+    this.fileDataChannel.send(JSON.stringify({ fileName, fileType, fileSize }));
+
+    for (let bytesSent = 0; bytesSent < fileSize; bytesSent += maxChunkSize) {
+      const bytesToBeSent = Math.min(bytesSent + maxChunkSize, fileSize);
+
+      this.fileDataChannel.send({
+        fileUint8Array: new Uint8Array(
+          fileArrayBuffer.slice(bytesSent, bytesToBeSent)
+        ),
+        bytesSent: bytesToBeSent,
+      });
+    }
+  }
+
+  readFile(data) {
+    console.log('DC READ FILE');
+    console.log(data);
+  }
 
   async muteTrack(kind) {
     this.stream.getTracks().forEach((track) => {
