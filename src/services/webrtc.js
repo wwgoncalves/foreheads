@@ -207,9 +207,9 @@ export default class WebRTC {
 
   onDataChannelMessageHandler(event) {
     console.log('DC MESSAGE: ', event.target);
-    const data = JSON.parse(event.data);
 
-    console.log('DC MESSAGE STRINGIFIED DATA: ', JSON.stringify(data));
+    // const data = JSON.parse(event.data);
+    // console.log('DC MESSAGE STRINGIFIED DATA: ', JSON.stringify(data));
 
     const dataChannelLabel = event.target.label;
     switch (dataChannelLabel) {
@@ -252,12 +252,15 @@ export default class WebRTC {
     for (let bytesSent = 0; bytesSent < fileSize; bytesSent += maxChunkSize) {
       const bytesToBeSent = Math.min(bytesSent + maxChunkSize, fileSize);
 
-      this.fileDataChannel.send({
-        fileUint8Array: new Uint8Array(
-          fileArrayBuffer.slice(bytesSent, bytesToBeSent)
-        ),
-        bytesSent: bytesToBeSent,
-      });
+      // this.fileDataChannel.send({
+      //   fileUint8Array: new Uint8Array(
+      //     fileArrayBuffer.slice(bytesSent, bytesToBeSent)
+      //   ),
+      //   bytesSent: bytesToBeSent,
+      // });
+      this.fileDataChannel.send(
+        new Uint8Array(fileArrayBuffer.slice(bytesSent, bytesToBeSent))
+      );
     }
   }
 
