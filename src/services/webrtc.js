@@ -1,26 +1,10 @@
 import Signalling from '~/services/signalling';
 
 export default class WebRTC {
-  constructor(stream, myVideoElement, theirVideoElement, roomId, setAlone) {
-    this.signallingChannel = new Signalling(roomId);
-    this.setAlone = setAlone; // here??!
-
-    this.myId = Math.floor(Math.random() * 1000000000);
-    this.servers = {
-      iceServers: [
-        { urls: 'stun:stun.services.mozilla.com' },
-        { urls: 'stun:stun.l.google.com:19302' },
-      ],
-    };
-
-    this.myVideo = myVideoElement;
-    this.theirVideo = theirVideoElement;
-
+  constructor(stream, options) {
     this.init = this.init.bind(this);
-
     this.sendSignal = this.sendSignal.bind(this);
     this.readSignal = this.readSignal.bind(this);
-
     this.onICECandidateHandler = this.onICECandidateHandler.bind(this);
     this.onTrackHandler = this.onTrackHandler.bind(this);
     this.onICEConnectionStateChangeHandler = this.onICEConnectionStateChangeHandler.bind(
@@ -29,7 +13,6 @@ export default class WebRTC {
     this.onConnectionStateChangeHandler = this.onConnectionStateChangeHandler.bind(
       this
     );
-
     this.onDataChannelHandler = this.onDataChannelHandler.bind(this);
     this.onDataChannelMessageHandler = this.onDataChannelMessageHandler.bind(
       this
@@ -37,19 +20,32 @@ export default class WebRTC {
     this.onDataChannelStateChangeHandler = this.onDataChannelStateChangeHandler.bind(
       this
     );
-
     this.sendMessage = this.sendMessage.bind(this);
     this.readMessage = this.readMessage.bind(this);
-
     this.sendFile = this.sendFile.bind(this);
     this.readFile = this.readFile.bind(this);
     this.buildFile = this.buildFile.bind(this);
-
     this.muteTrack = this.muteTrack.bind(this);
     this.unmuteTrack = this.unmuteTrack.bind(this);
     this.endPeerConnection = this.endPeerConnection.bind(this);
 
     this.stream = stream;
+    this.myId = Math.floor(Math.random() * 1000000000);
+    this.signallingChannel = new Signalling(options.networkId);
+
+    this.onLocalMedia = options.onLocalMedia;
+    this.onRemoteMedia = options.onRemoteMedia;
+    this.onMessage = options.onMessage;
+    this.onFileTransfer = options.onFileTransfer;
+    this.onFileReady = options.onFileReady;
+
+    this.servers = {
+      iceServers: [
+        { urls: 'stun:stun.services.mozilla.com' },
+        { urls: 'stun:stun.l.google.com:19302' },
+      ],
+    };
+
     this.pc = new RTCPeerConnection(this.servers);
 
     this.messageDataChannel = this.pc.createDataChannel('messageDataChannel');
@@ -64,36 +60,22 @@ export default class WebRTC {
     this.pc.ontrack = this.onTrackHandler;
     this.pc.oniceconnectionstatechange = this.onICEConnectionStateChangeHandler;
     this.pc.onconnectionstatechange = this.onConnectionStateChangeHandler;
-
     this.pc.ondatachannel = this.onDataChannelHandler;
 
     this.signallingChannel.subscribe(this.readSignal);
   }
 
-  static async build(myVideoElement, theirVideoElement, roomId, setAlone) {
-    const constraints = {
-      audio: true,
-      video: {
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-      },
-    };
-
+  static async build(options) {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      const stream = await navigator.mediaDevices.getUserMedia(
+        options.mediaConstraints
+      );
       console.log('STREAM: ', stream);
       console.log('TRACKS: ', stream.getTracks());
 
-      return new WebRTC(
-        stream,
-        myVideoElement,
-        theirVideoElement,
-        roomId,
-        setAlone
-      );
+      return new WebRTC(stream, options);
     } catch (error) {
-      console.log(error);
-
+      console.error(error);
       return null;
     }
   }
@@ -106,17 +88,14 @@ export default class WebRTC {
           console.log('VIDEO WIDTH MAX: ', track.getCapabilities().width.max);
           console.log('VIDEO HEIGHT MAX: ', track.getCapabilities().height.max);
         }
-
         this.pc.addTrack(track, this.stream);
       });
 
-      this.myVideo.srcObject = this.stream;
+      this.onLocalMedia(this.stream);
 
       if (isCaller) {
         console.log('IS THE CALLER, SEND OFFER');
-
         await this.pc.setLocalDescription(await this.pc.createOffer());
-
         this.sendSignal(JSON.stringify({ sdp: this.pc.localDescription }));
       }
     } catch (error) {
@@ -126,7 +105,6 @@ export default class WebRTC {
 
   sendSignal(data) {
     console.log('SENDSIG');
-
     const dataObject = {
       [`${new Date().getTime()}`]: {
         sender: this.myId,
@@ -140,37 +118,26 @@ export default class WebRTC {
   async readSignal(data) {
     console.log('READSIG: ', data.val());
     if (data.val() === null) return;
-
     const msg = JSON.parse(data.val().information);
     const { sender } = data.val();
-
     console.log('SENDER: ', sender);
     console.log('MYID: ', this.myId);
 
     if (sender !== this.myId) {
       if (msg.ice !== undefined) {
         console.log('RECEIVED ICE');
-
         this.pc.addIceCandidate(new RTCIceCandidate(msg.ice));
       } else if (msg.sdp.type === 'offer') {
         console.log('RECEIVED OFFER, SEND ANSWER');
-
         try {
           await this.pc.setRemoteDescription(msg.sdp);
-
-          // this.stream.getTracks().forEach((track) => {
-          //   this.pc.addTrack(track, this.stream);
-          // });
-
           await this.pc.setLocalDescription(await this.pc.createAnswer());
-
           this.sendSignal(JSON.stringify({ sdp: this.pc.localDescription }));
         } catch (error) {
           console.error(error);
         }
       } else if (msg.sdp.type === 'answer') {
         console.log('RECEIVED ANSWER');
-
         this.pc.setRemoteDescription(msg.sdp);
       }
     }
@@ -178,21 +145,17 @@ export default class WebRTC {
 
   onICECandidateHandler(event) {
     console.log('ONICE');
-
     if (event.candidate) {
       this.sendSignal(JSON.stringify({ ice: event.candidate }));
     } else {
-      console.log('All ICE candidates have been sent.');
+      console.log('ALL ICE CANDIDATES HAVE BEEN SENT');
     }
   }
 
   onTrackHandler(event) {
     console.log('ONTRACK');
     console.log('REMOTE STREAMS: ', event.streams);
-
-    if (this.theirVideo.srcObject) return;
-    [this.theirVideo.srcObject] = event.streams;
-    this.setAlone(false);
+    this.onRemoteMedia(event.streams[0]);
   }
 
   onICEConnectionStateChangeHandler() {
@@ -213,11 +176,10 @@ export default class WebRTC {
 
   onDataChannelMessageHandler(event) {
     console.log('DC MESSAGE: ', event.target);
-
     // const data = JSON.parse(event.data);
     // console.log('DC MESSAGE STRINGIFIED DATA: ', JSON.stringify(data));
-
     const dataChannelLabel = event.target.label;
+
     switch (dataChannelLabel) {
       case 'messageDataChannel':
         this.readMessage(event.data);
@@ -237,7 +199,6 @@ export default class WebRTC {
 
   sendMessage(data) {
     console.log('DC SEND MESSAGE: ', data);
-
     this.messageDataChannel.send(
       JSON.stringify({ ...data, sender: this.myId })
     );
@@ -245,11 +206,13 @@ export default class WebRTC {
 
   readMessage(data) {
     console.log('DC READ MESSAGE: ', data);
+    if (typeof data === 'string') {
+      this.onMessage(JSON.parse(data));
+    }
   }
 
   sendFile(fileData) {
     console.log('DC SEND FILE');
-
     const { fileName, fileType, fileSize, fileArrayBuffer } = fileData;
     const maxChunkSize = 16000; // 16kB due to current browsers interoperability issues
 
@@ -258,12 +221,6 @@ export default class WebRTC {
     for (let bytesSent = 0; bytesSent < fileSize; bytesSent += maxChunkSize) {
       const bytesToBeSent = Math.min(bytesSent + maxChunkSize, fileSize);
 
-      // this.fileDataChannel.send({
-      //   fileUint8Array: new Uint8Array(
-      //     fileArrayBuffer.slice(bytesSent, bytesToBeSent)
-      //   ),
-      //   bytesSent: bytesToBeSent,
-      // });
       this.fileDataChannel.send(
         new Uint8Array(fileArrayBuffer.slice(bytesSent, bytesToBeSent))
       );
@@ -272,31 +229,34 @@ export default class WebRTC {
 
   readFile(data) {
     console.log('DC READ FILE');
-    // console.log('  TYPE OF DATA: ', typeof data);
-
     const { fileState } = this.fileInfo;
 
-    if (typeof data === 'string' && fileState === 'waiting') {
+    if (
+      typeof data === 'string' &&
+      fileState === 'waiting' &&
+      this.fileBuffer.length === 0
+    ) {
       this.fileInfo = JSON.parse(data);
-      this.fileInfo.bytesReceived = 0;
-      this.fileInfo.fileState = 'receiving';
+      if (this.fileInfo.fileSize > 0) {
+        this.fileInfo.fileState = 'receiving';
+        this.fileInfo.bytesReceived = 0;
+        this.onFileTransfer(this.fileInfo);
+      } else {
+        this.fileInfo = {};
+        this.fileInfo.fileState = 'waiting';
+      }
 
       console.log('FILE INFO: ', this.fileInfo);
-    } else if (
-      data instanceof ArrayBuffer &&
-      fileState === 'receiving' &&
-      this.fileInfo.fileSize
-    ) {
+    } else if (data instanceof ArrayBuffer && fileState === 'receiving') {
       console.dir('DATA CHUNK: ', data);
       console.log('DATA CHUNK LENGTH: ', data.byteLength);
       console.log('DATA CHUNK VALUES: ', Object.values(data));
-
       this.fileBuffer.push(new Uint8Array(data));
 
       console.log('FILE BUFFER LENGHT: ', this.fileBuffer.length);
       console.log('FILE BUFFER: ', this.fileBuffer);
-
       this.fileInfo.bytesReceived += data.byteLength;
+
       if (this.fileInfo.bytesReceived === this.fileInfo.fileSize) {
         this.buildFile();
       }
@@ -307,7 +267,6 @@ export default class WebRTC {
 
   buildFile() {
     console.log('BUILD FILE');
-
     const fileBytes = this.fileBuffer.reduce((prev, current) => {
       const tmp = new Uint8Array(prev.byteLength + current.byteLength);
       tmp.set(prev, 0);
@@ -318,13 +277,13 @@ export default class WebRTC {
     const fileBlob = new Blob([fileBytes], {
       type: this.fileInfo.fileType,
     });
-
-    const a = document.createElement('a');
-    a.innerText = this.fileInfo.fileName;
-    a.href = URL.createObjectURL(fileBlob);
-    document.querySelector('#testdiv').prepend(a);
-
-    console.log('BUILT FILE: ', a.toString());
+    // const a = document.createElement('a');
+    // a.innerText = this.fileInfo.fileName;
+    // a.href = URL.createObjectURL(fileBlob);
+    // // document.querySelector('#testdiv').prepend(a);
+    // console.log('ANCHOR ELEMENT HREF: ', a.toString());
+    console.log('FILE HAS BEEN BUILT');
+    this.onFileReady(this.fileInfo, fileBlob);
 
     this.fileBuffer = [];
     this.fileInfo = {};
@@ -352,8 +311,13 @@ export default class WebRTC {
   }
 
   endPeerConnection() {
+    this.messageDataChannel.close();
+    this.fileDataChannel.close();
+    console.log('DATA CHANNELS CLOSED');
+
     this.pc.close();
     console.log('PEERCONNECTION CLOSED');
+
     this.stream.getTracks().forEach((track) => {
       track.stop();
     });

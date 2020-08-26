@@ -60,15 +60,55 @@ function Room(props) {
   const [snackPack, setSnackPack] = React.useState([]);
   const [snack, setSnack] = React.useState(undefined);
 
+  const onLocalMedia = (stream) => {
+    const localMediaElement = document.getElementById('myVideo');
+    localMediaElement.srcObject = stream;
+  };
+  const onRemoteMedia = (stream) => {
+    const remoteMediaElement = document.getElementById('theirVideo');
+    if (remoteMediaElement.srcObject) return;
+    remoteMediaElement.srcObject = stream;
+    setAlone(false);
+  };
+  const onMessage = (data) => {
+    alert(`MESSAGE: ${data.message}`);
+  };
+  const onFileTransfer = (fileInfo) => {
+    const { fileName, fileType, fileSize } = fileInfo;
+    alert(`TO BE TRANSFERRED: ${fileName} - ${fileType} - ${fileSize} bytes`);
+  };
+  const onFileReady = (fileInfo, fileBlob) => {
+    const { fileName, fileType, fileSize } = fileInfo;
+    alert(`FILE AVAILABLE: ${fileName} - ${fileType} - ${fileSize} bytes`);
+
+    const a = document.createElement('a');
+    a.innerText = fileName;
+    a.href = URL.createObjectURL(fileBlob);
+    document.querySelector('#testdiv').prepend(a);
+  };
+
   React.useEffect(() => {
     async function buildWebRTCObject() {
-      const myVideoElement = document.getElementById('myVideo');
-      const theirVideoElement = document.getElementById('theirVideo');
+      const mediaConstraints = {
+        audio: true,
+        video: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+      };
 
-      setWebRTC(
-        await WebRTC.build(myVideoElement, theirVideoElement, roomId, setAlone)
-      );
+      const webrtcOptions = {
+        networkId: roomId,
+        mediaConstraints,
+        onLocalMedia,
+        onRemoteMedia,
+        onMessage,
+        onFileTransfer,
+        onFileReady,
+      };
+      setWebRTC(await WebRTC.build(webrtcOptions));
     }
+
     buildWebRTCObject();
   }, []);
 
@@ -78,6 +118,7 @@ function Room(props) {
         await webRTC.init(isCaller);
       }
     }
+
     initWebRTCSession();
   }, [webRTC]);
 
