@@ -15,13 +15,13 @@ function App() {
   const handleCreateNewRoom = () => {
     setChosen(true);
     setIsCaller(true);
-    console.log('CREATE A NEW ROOM');
+    // console.log('CREATE A NEW ROOM');
     const newRoomId = firebase.generateKey();
     setRoomId(newRoomId);
   };
   const handleJoinExistingRoom = (existingRoomId) => {
     setChosen(true);
-    console.log('JOIN AN EXISTING ROOM: ', existingRoomId);
+    // console.log('JOIN AN EXISTING ROOM: ', existingRoomId);
     setRoomId(existingRoomId);
   };
 

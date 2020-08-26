@@ -71,19 +71,24 @@ function Room(props) {
     setAlone(false);
   };
   const onMessage = (data) => {
-    alert(`MESSAGE: ${data.message}`);
+    console.log(`MESSAGE RECEIVED: ${data.message}`);
   };
   const onFileTransfer = (fileInfo) => {
     const { fileName, fileType, fileSize } = fileInfo;
-    alert(`TO BE TRANSFERRED: ${fileName} - ${fileType} - ${fileSize} bytes`);
+    console.log(
+      `TO BE TRANSFERRED: ${fileName} - ${fileType} - ${fileSize} bytes`
+    );
   };
   const onFileReady = (fileInfo, fileBlob) => {
     const { fileName, fileType, fileSize } = fileInfo;
-    alert(`FILE AVAILABLE: ${fileName} - ${fileType} - ${fileSize} bytes`);
+    console.log(
+      `FILE AVAILABLE: ${fileName} - ${fileType} - ${fileSize} bytes`
+    );
 
     const a = document.createElement('a');
     a.innerText = fileName;
     a.href = URL.createObjectURL(fileBlob);
+    a.target = '_blank';
     document.querySelector('#testdiv').prepend(a);
   };
 
@@ -238,7 +243,7 @@ function Room(props) {
           });
         }
       })
-      .catch((error) => console.log(error));
+      .catch((error) => console.error(error));
   };
 
   const copyToClipboard = async () => {
@@ -252,9 +257,9 @@ function Room(props) {
     const selectedContent = selection.focusNode.innerText;
     try {
       await navigator.clipboard.writeText(selectedContent);
-      console.log('ROOM ID COPIED TO CLIPBOARD');
+      // console.log('ROOM ID COPIED TO CLIPBOARD');
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
     selection.removeAllRanges();
   };

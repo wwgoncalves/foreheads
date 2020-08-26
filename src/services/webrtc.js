@@ -70,8 +70,8 @@ export default class WebRTC {
       const stream = await navigator.mediaDevices.getUserMedia(
         options.mediaConstraints
       );
-      console.log('STREAM: ', stream);
-      console.log('TRACKS: ', stream.getTracks());
+      // console.log('STREAM: ', stream);
+      // console.log('TRACKS: ', stream.getTracks());
 
       return new WebRTC(stream, options);
     } catch (error) {
@@ -83,18 +83,18 @@ export default class WebRTC {
   async init(isCaller) {
     try {
       this.stream.getTracks().forEach((track) => {
-        if (track.kind === 'video') {
-          console.log('VIDEO SOURCE LABEL: ', track.label);
-          console.log('VIDEO WIDTH MAX: ', track.getCapabilities().width.max);
-          console.log('VIDEO HEIGHT MAX: ', track.getCapabilities().height.max);
-        }
+        // if (track.kind === 'video') {
+        //   // console.log('VIDEO SOURCE LABEL: ', track.label);
+        //   // console.log('VIDEO WIDTH MAX: ', track.getCapabilities().width.max);
+        //   // console.log('VIDEO HEIGHT MAX: ', track.getCapabilities().height.max);
+        // }
         this.pc.addTrack(track, this.stream);
       });
 
       this.onLocalMedia(this.stream);
 
       if (isCaller) {
-        console.log('IS THE CALLER, SEND OFFER');
+        // console.log('IS THE CALLER, SEND OFFER');
         await this.pc.setLocalDescription(await this.pc.createOffer());
         this.sendSignal(JSON.stringify({ sdp: this.pc.localDescription }));
       }
@@ -104,7 +104,7 @@ export default class WebRTC {
   }
 
   sendSignal(data) {
-    console.log('SENDSIG');
+    // console.log('SENDSIG');
     const dataObject = {
       [`${new Date().getTime()}`]: {
         sender: this.myId,
@@ -116,19 +116,19 @@ export default class WebRTC {
   }
 
   async readSignal(data) {
-    console.log('READSIG: ', data.val());
+    // console.log('READSIG: ', data.val());
     if (data.val() === null) return;
     const msg = JSON.parse(data.val().information);
     const { sender } = data.val();
-    console.log('SENDER: ', sender);
-    console.log('MYID: ', this.myId);
+    // console.log('SENDER: ', sender);
+    // console.log('MYID: ', this.myId);
 
     if (sender !== this.myId) {
       if (msg.ice !== undefined) {
-        console.log('RECEIVED ICE');
+        // console.log('RECEIVED ICE');
         this.pc.addIceCandidate(new RTCIceCandidate(msg.ice));
       } else if (msg.sdp.type === 'offer') {
-        console.log('RECEIVED OFFER, SEND ANSWER');
+        // console.log('RECEIVED OFFER, SEND ANSWER');
         try {
           await this.pc.setRemoteDescription(msg.sdp);
           await this.pc.setLocalDescription(await this.pc.createAnswer());
@@ -137,47 +137,45 @@ export default class WebRTC {
           console.error(error);
         }
       } else if (msg.sdp.type === 'answer') {
-        console.log('RECEIVED ANSWER');
+        // console.log('RECEIVED ANSWER');
         this.pc.setRemoteDescription(msg.sdp);
       }
     }
   }
 
   onICECandidateHandler(event) {
-    console.log('ONICE');
+    // console.log('ONICE');
     if (event.candidate) {
       this.sendSignal(JSON.stringify({ ice: event.candidate }));
     } else {
-      console.log('ALL ICE CANDIDATES HAVE BEEN SENT');
+      // console.log('ALL ICE CANDIDATES HAVE BEEN SENT');
     }
   }
 
   onTrackHandler(event) {
-    console.log('ONTRACK');
-    console.log('REMOTE STREAMS: ', event.streams);
+    // console.log('ONTRACK');
+    // console.log('REMOTE STREAMS: ', event.streams);
     this.onRemoteMedia(event.streams[0]);
   }
 
   onICEConnectionStateChangeHandler() {
-    console.log('ICE CONNECTION STATE CHANGE: ', this.pc.iceConnectionState);
+    // console.log('ICE CONNECTION STATE CHANGE: ', this.pc.iceConnectionState);
   }
 
   onConnectionStateChangeHandler() {
-    console.log('CONNECTION STATE CHANGE: ', this.pc.connectionState);
+    // console.log('CONNECTION STATE CHANGE: ', this.pc.connectionState);
   }
 
   onDataChannelHandler(event) {
     const receiving = event.channel;
-    console.log('RECEIVING DC: ', receiving.label);
+    // console.log('RECEIVING DC: ', receiving.label);
     receiving.onmessage = this.onDataChannelMessageHandler;
     receiving.onopen = this.onDataChannelStateChangeHandler;
     receiving.onclose = this.onDataChannelStateChangeHandler;
   }
 
   onDataChannelMessageHandler(event) {
-    console.log('DC MESSAGE: ', event.target);
-    // const data = JSON.parse(event.data);
-    // console.log('DC MESSAGE STRINGIFIED DATA: ', JSON.stringify(data));
+    // console.log('DC MESSAGE: ', event.target);
     const dataChannelLabel = event.target.label;
 
     switch (dataChannelLabel) {
@@ -188,31 +186,31 @@ export default class WebRTC {
         this.readFile(event.data);
         break;
       default:
-        console.log('TBD');
+        console.error({ error: 'Data channel unknown.' });
     }
   }
 
   // eslint-disable-next-line class-methods-use-this
   onDataChannelStateChangeHandler(event) {
-    console.log('DC STATE CHANGE: ', event);
+    // console.log('DC STATE CHANGE: ', event);
   }
 
   sendMessage(data) {
-    console.log('DC SEND MESSAGE: ', data);
+    // console.log('DC SEND MESSAGE: ', data);
     this.messageDataChannel.send(
       JSON.stringify({ ...data, sender: this.myId })
     );
   }
 
   readMessage(data) {
-    console.log('DC READ MESSAGE: ', data);
+    // console.log('DC READ MESSAGE: ', data);
     if (typeof data === 'string') {
       this.onMessage(JSON.parse(data));
     }
   }
 
   sendFile(fileData) {
-    console.log('DC SEND FILE');
+    // console.log('DC SEND FILE');
     const { fileName, fileType, fileSize, fileArrayBuffer } = fileData;
     const maxChunkSize = 16000; // 16kB due to current browsers interoperability issues
 
@@ -228,7 +226,7 @@ export default class WebRTC {
   }
 
   readFile(data) {
-    console.log('DC READ FILE');
+    // console.log('DC READ FILE');
     const { fileState } = this.fileInfo;
 
     if (
@@ -246,15 +244,13 @@ export default class WebRTC {
         this.fileInfo.fileState = 'waiting';
       }
 
-      console.log('FILE INFO: ', this.fileInfo);
+      // console.log('FILE INFO: ', this.fileInfo);
     } else if (data instanceof ArrayBuffer && fileState === 'receiving') {
-      console.dir('DATA CHUNK: ', data);
-      console.log('DATA CHUNK LENGTH: ', data.byteLength);
-      console.log('DATA CHUNK VALUES: ', Object.values(data));
+      // console.log('DATA CHUNK LENGTH: ', data.byteLength);
       this.fileBuffer.push(new Uint8Array(data));
 
-      console.log('FILE BUFFER LENGHT: ', this.fileBuffer.length);
-      console.log('FILE BUFFER: ', this.fileBuffer);
+      // console.log('FILE BUFFER LENGHT: ', this.fileBuffer.length);
+      // console.log('FILE BUFFER: ', this.fileBuffer);
       this.fileInfo.bytesReceived += data.byteLength;
 
       if (this.fileInfo.bytesReceived === this.fileInfo.fileSize) {
@@ -266,7 +262,7 @@ export default class WebRTC {
   }
 
   buildFile() {
-    console.log('BUILD FILE');
+    // console.log('BUILD FILE');
     const fileBytes = this.fileBuffer.reduce((prev, current) => {
       const tmp = new Uint8Array(prev.byteLength + current.byteLength);
       tmp.set(prev, 0);
@@ -277,12 +273,8 @@ export default class WebRTC {
     const fileBlob = new Blob([fileBytes], {
       type: this.fileInfo.fileType,
     });
-    // const a = document.createElement('a');
-    // a.innerText = this.fileInfo.fileName;
-    // a.href = URL.createObjectURL(fileBlob);
-    // // document.querySelector('#testdiv').prepend(a);
-    // console.log('ANCHOR ELEMENT HREF: ', a.toString());
-    console.log('FILE HAS BEEN BUILT');
+
+    // console.log('FILE HAS BEEN BUILT');
     this.onFileReady(this.fileInfo, fileBlob);
 
     this.fileBuffer = [];
@@ -295,7 +287,7 @@ export default class WebRTC {
       if (track.kind === kind) {
         // eslint-disable-next-line no-param-reassign
         track.enabled = false;
-        console.log(kind, 'MUTED');
+        // console.log(kind, 'MUTED');
       }
     });
   }
@@ -305,7 +297,7 @@ export default class WebRTC {
       if (track.kind === kind) {
         // eslint-disable-next-line no-param-reassign
         track.enabled = true;
-        console.log(kind, 'UNMUTED');
+        // console.log(kind, 'UNMUTED');
       }
     });
   }
@@ -313,14 +305,14 @@ export default class WebRTC {
   endPeerConnection() {
     this.messageDataChannel.close();
     this.fileDataChannel.close();
-    console.log('DATA CHANNELS CLOSED');
+    // console.log('DATA CHANNELS CLOSED');
 
     this.pc.close();
-    console.log('PEERCONNECTION CLOSED');
+    // console.log('PEERCONNECTION CLOSED');
 
     this.stream.getTracks().forEach((track) => {
       track.stop();
     });
-    console.log('ALL TRACKS STOPPED');
+    // console.log('ALL TRACKS STOPPED');
   }
 }
