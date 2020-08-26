@@ -287,6 +287,7 @@ function Room(props) {
               Duis aute irure dolor in reprehenderit in voluptate velit esse
               cillum dolore eu fugiat.
             </span>
+            <div id="testdiv" />
           </div>
           <div className="message">
             <InputBase

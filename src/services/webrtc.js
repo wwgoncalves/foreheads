@@ -39,10 +39,11 @@ export default class WebRTC {
     );
 
     this.sendMessage = this.sendMessage.bind(this);
-    // this.readMessage = this.readMessage.bind(this);
+    this.readMessage = this.readMessage.bind(this);
 
-    // this.sendFile = this.sendFile.bind(this);
-    // this.readFile = this.readFile.bind(this);
+    this.sendFile = this.sendFile.bind(this);
+    this.readFile = this.readFile.bind(this);
+    this.buildFile = this.buildFile.bind(this);
 
     this.muteTrack = this.muteTrack.bind(this);
     this.unmuteTrack = this.unmuteTrack.bind(this);
@@ -52,7 +53,12 @@ export default class WebRTC {
     this.pc = new RTCPeerConnection(this.servers);
 
     this.messageDataChannel = this.pc.createDataChannel('messageDataChannel');
+
     this.fileDataChannel = this.pc.createDataChannel('fileDataChannel');
+    this.fileDataChannel.binaryType = 'arraybuffer';
+    this.fileBuffer = [];
+    this.fileInfo = {};
+    this.fileInfo.fileState = 'waiting'; // 'waiting' OR 'receiving'
 
     this.pc.onicecandidate = this.onICECandidateHandler;
     this.pc.ontrack = this.onTrackHandler;
@@ -266,7 +272,63 @@ export default class WebRTC {
 
   readFile(data) {
     console.log('DC READ FILE');
-    console.log(data);
+    // console.log('  TYPE OF DATA: ', typeof data);
+
+    const { fileState } = this.fileInfo;
+
+    if (typeof data === 'string' && fileState === 'waiting') {
+      this.fileInfo = JSON.parse(data);
+      this.fileInfo.bytesReceived = 0;
+      this.fileInfo.fileState = 'receiving';
+
+      console.log('FILE INFO: ', this.fileInfo);
+    } else if (
+      data instanceof ArrayBuffer &&
+      fileState === 'receiving' &&
+      this.fileInfo.fileSize
+    ) {
+      console.dir('DATA CHUNK: ', data);
+      console.log('DATA CHUNK LENGTH: ', data.byteLength);
+      console.log('DATA CHUNK VALUES: ', Object.values(data));
+
+      this.fileBuffer.push(new Uint8Array(data));
+
+      console.log('FILE BUFFER LENGHT: ', this.fileBuffer.length);
+      console.log('FILE BUFFER: ', this.fileBuffer);
+
+      this.fileInfo.bytesReceived += data.byteLength;
+      if (this.fileInfo.bytesReceived === this.fileInfo.fileSize) {
+        this.buildFile();
+      }
+    } else {
+      console.error('DC READ FILE ERROR');
+    }
+  }
+
+  buildFile() {
+    console.log('BUILD FILE');
+
+    const fileBytes = this.fileBuffer.reduce((prev, current) => {
+      const tmp = new Uint8Array(prev.byteLength + current.byteLength);
+      tmp.set(prev, 0);
+      tmp.set(current, prev.byteLength);
+      return tmp;
+    }, new Uint8Array());
+
+    const fileBlob = new Blob([fileBytes], {
+      type: this.fileInfo.fileType,
+    });
+
+    const a = document.createElement('a');
+    a.innerText = this.fileInfo.fileName;
+    a.href = URL.createObjectURL(fileBlob);
+    document.querySelector('#testdiv').prepend(a);
+
+    console.log('BUILT FILE: ', a.toString());
+
+    this.fileBuffer = [];
+    this.fileInfo = {};
+    this.fileInfo.fileState = 'waiting';
   }
 
   async muteTrack(kind) {
