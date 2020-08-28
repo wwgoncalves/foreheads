@@ -1,16 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {
-  Fab,
-  InputBase,
-  IconButton,
-  Tooltip,
-  Snackbar,
-  Slide,
-} from '@material-ui/core';
+import { Fab, IconButton, Tooltip, Snackbar, Slide } from '@material-ui/core';
 
-import SendIcon from '@material-ui/icons/Send';
 import MicIcon from '@material-ui/icons/Mic';
 import MicOffIcon from '@material-ui/icons/MicOff';
 import VideocamIcon from '@material-ui/icons/Videocam';
@@ -22,7 +14,9 @@ import CallEndIcon from '@material-ui/icons/CallEnd';
 import AttachFileIcon from '@material-ui/icons/AttachFile';
 
 import WebRTC from '~/services/webrtc';
+
 import Header from './Header';
+import TextChat from './ChatPanel';
 
 // import { Container } from './styles';
 
@@ -49,9 +43,13 @@ function Room(props) {
   const [webRTC, setWebRTC] = React.useState(null);
 
   const [alone, setAlone] = React.useState(true);
+
+  const [messages, setMessages] = React.useState([]);
+  const [chatPanelIsOpen, setChatPanelIsOpen] = React.useState(false);
+
   const [cameraIsOn, setCameraIsOn] = React.useState(true);
   const [micIsOn, setMicIsOn] = React.useState(true);
-  const [chatPanelIsOpen, setChatPanelIsOpen] = React.useState(false);
+
   const [snackbarIsOpen, setSnackbarIsOpen] = React.useState(false);
   const [snackPack, setSnackPack] = React.useState([]);
   const [snack, setSnack] = React.useState(undefined);
@@ -60,15 +58,20 @@ function Room(props) {
     const localMediaElement = document.getElementById('myVideo');
     localMediaElement.srcObject = stream;
   };
+
   const onRemoteMedia = (stream) => {
     const remoteMediaElement = document.getElementById('theirVideo');
     if (remoteMediaElement.srcObject) return;
     remoteMediaElement.srcObject = stream;
     setAlone(false);
   };
-  const onMessage = (data) => {
-    // console.log(`MESSAGE RECEIVED: ${data.message}`);
+
+  const onMessage = (messageObject) => {
+    // eslint-disable-next-line no-param-reassign
+    messageObject.origin = 'theirs';
+    setMessages((prevMessages) => [...prevMessages, messageObject]);
   };
+
   const onFileTransfer = (fileInfo) => {
     const { fileName, fileType, fileSize } = fileInfo;
     // console.log(
@@ -109,6 +112,37 @@ function Room(props) {
       };
       setWebRTC(await WebRTC.build(webrtcOptions));
     }
+
+    setMessages([
+      {
+        type: 'text',
+        content:
+          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore?',
+        origin: 'theirs',
+        datetime: new Date().getTime() + 0,
+      },
+      {
+        type: 'text',
+        content:
+          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore?',
+        origin: 'theirs',
+        datetime: new Date().getTime() + 1,
+      },
+      {
+        type: 'text',
+        content:
+          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore?',
+        origin: 'theirs',
+        datetime: new Date().getTime() + 2,
+      },
+      {
+        type: 'text',
+        content:
+          'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat.',
+        origin: 'mine',
+        datetime: new Date().getTime() + 3,
+      },
+    ]);
 
     buildWebRTCObject();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -181,11 +215,11 @@ function Room(props) {
 
   const openChatPanel = () => {
     setChatPanelIsOpen(true);
-    document.querySelector('.textchat').style.display = 'flex';
+    // document.querySelector('.textchat').style.display = 'flex';
   };
   const closeChatPanel = () => {
     setChatPanelIsOpen(false);
-    document.querySelector('.textchat').style.display = 'none';
+    // document.querySelector('.textchat').style.display = 'none';
   };
 
   const transferFile = (event) => {
@@ -224,11 +258,19 @@ function Room(props) {
     }
   };
 
-  const sendMessage = () => {
+  const sendMessage = (message) => {
+    const messageObject = {
+      type: 'text',
+      content: message,
+      datetime: new Date().getTime(),
+    };
+
     if (webRTC) {
-      const message = document.querySelector('#textmessage').value;
-      webRTC.sendMessage({ message });
+      webRTC.sendMessage(messageObject);
     }
+
+    messageObject.origin = 'mine';
+    setMessages((prevMessages) => [...prevMessages, messageObject]);
   };
 
   return (
@@ -244,45 +286,11 @@ function Room(props) {
             </div>
           </div>
         </div>
-        <div className="textchat">
-          <div className="conversation">
-            <span className="theirs">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore?
-            </span>
-            <span className="mine">
-              Duis aute irure dolor in reprehenderit in voluptate velit esse
-              cillum dolore eu fugiat.
-            </span>
-            <span className="theirs">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore?
-            </span>
-            <span className="theirs">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore?
-            </span>
-            <span className="mine">
-              Duis aute irure dolor in reprehenderit in voluptate velit esse
-              cillum dolore eu fugiat.
-            </span>
-            <div id="testdiv" />
-          </div>
-          <div className="message">
-            <InputBase
-              id="textmessage"
-              placeholder="Message..."
-              inputProps={{ 'aria-label': 'type your message' }}
-            />
-            <IconButton
-              type="submit"
-              aria-label="send message"
-              onClick={sendMessage}
-            >
-              <SendIcon />
-            </IconButton>
-          </div>
-        </div>
+        <TextChat
+          open={chatPanelIsOpen}
+          messages={messages}
+          sendMessage={sendMessage}
+        />
         <div className="controls">
           <div>
             {cameraIsOn ? (
