@@ -9,7 +9,6 @@ export default async function (elementRef) {
   const selectedContent = selection.focusNode.innerText;
   try {
     await navigator.clipboard.writeText(selectedContent);
-    console.log('COPIED TO CLIPBOARD!');
   } catch (error) {
     console.error(error);
   }
