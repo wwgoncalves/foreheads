@@ -1,11 +1,14 @@
 import React from 'react';
 
+import { StylesProvider } from '@material-ui/core/styles';
+
 import Dialog from '~/components/Dialog';
 import Room from '~/components/Room';
 
 import firebase from '~/services/firebase';
 
 import '~/assets/css/App.css';
+import GlobalStyle from './styles/global';
 
 function App() {
   const [chosen, setChosen] = React.useState(false);
@@ -15,18 +18,18 @@ function App() {
   const handleCreateNewRoom = () => {
     setChosen(true);
     setIsCaller(true);
-    // console.log('CREATE A NEW ROOM');
     const newRoomId = firebase.generateKey();
     setRoomId(newRoomId);
   };
+
   const handleJoinExistingRoom = (existingRoomId) => {
     setChosen(true);
-    // console.log('JOIN AN EXISTING ROOM: ', existingRoomId);
     setRoomId(existingRoomId);
   };
 
   return (
-    <>
+    <StylesProvider injectFirst>
+      <GlobalStyle />
       {!chosen && (
         <Dialog
           handleCreateNewRoom={handleCreateNewRoom}
@@ -34,7 +37,7 @@ function App() {
         />
       )}
       {chosen && <Room isCaller={isCaller} roomId={roomId} />}
-    </>
+    </StylesProvider>
   );
 }
 

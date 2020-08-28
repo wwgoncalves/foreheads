@@ -7,19 +7,19 @@ export default class WebRTC {
     this.readSignal = this.readSignal.bind(this);
     this.onICECandidateHandler = this.onICECandidateHandler.bind(this);
     this.onTrackHandler = this.onTrackHandler.bind(this);
-    this.onICEConnectionStateChangeHandler = this.onICEConnectionStateChangeHandler.bind(
-      this
-    );
-    this.onConnectionStateChangeHandler = this.onConnectionStateChangeHandler.bind(
-      this
-    );
+    // this.onICEConnectionStateChangeHandler = this.onICEConnectionStateChangeHandler.bind(
+    //   this
+    // );
+    // this.onConnectionStateChangeHandler = this.onConnectionStateChangeHandler.bind(
+    //   this
+    // );
     this.onDataChannelHandler = this.onDataChannelHandler.bind(this);
     this.onDataChannelMessageHandler = this.onDataChannelMessageHandler.bind(
       this
     );
-    this.onDataChannelStateChangeHandler = this.onDataChannelStateChangeHandler.bind(
-      this
-    );
+    // this.onDataChannelStateChangeHandler = this.onDataChannelStateChangeHandler.bind(
+    //   this
+    // );
     this.sendMessage = this.sendMessage.bind(this);
     this.readMessage = this.readMessage.bind(this);
     this.sendFile = this.sendFile.bind(this);
@@ -44,7 +44,7 @@ export default class WebRTC {
         { urls: 'stun:stun.services.mozilla.com' },
         { urls: 'stun:stun.l.google.com:19302' },
       ],
-    };
+    }; // no turn server configured if need be
 
     this.pc = new RTCPeerConnection(this.servers);
 
@@ -58,8 +58,8 @@ export default class WebRTC {
 
     this.pc.onicecandidate = this.onICECandidateHandler;
     this.pc.ontrack = this.onTrackHandler;
-    this.pc.oniceconnectionstatechange = this.onICEConnectionStateChangeHandler;
-    this.pc.onconnectionstatechange = this.onConnectionStateChangeHandler;
+    // this.pc.oniceconnectionstatechange = this.onICEConnectionStateChangeHandler;
+    // this.pc.onconnectionstatechange = this.onConnectionStateChangeHandler;
     this.pc.ondatachannel = this.onDataChannelHandler;
 
     this.signallingChannel.subscribe(this.readSignal);
@@ -158,20 +158,20 @@ export default class WebRTC {
     this.onRemoteMedia(event.streams[0]);
   }
 
-  onICEConnectionStateChangeHandler() {
-    // console.log('ICE CONNECTION STATE CHANGE: ', this.pc.iceConnectionState);
-  }
+  // onICEConnectionStateChangeHandler() {
+  //   // console.log('ICE CONNECTION STATE CHANGE: ', this.pc.iceConnectionState);
+  // }
 
-  onConnectionStateChangeHandler() {
-    // console.log('CONNECTION STATE CHANGE: ', this.pc.connectionState);
-  }
+  // onConnectionStateChangeHandler() {
+  //   // console.log('CONNECTION STATE CHANGE: ', this.pc.connectionState);
+  // }
 
   onDataChannelHandler(event) {
     const receiving = event.channel;
     // console.log('RECEIVING DC: ', receiving.label);
     receiving.onmessage = this.onDataChannelMessageHandler;
-    receiving.onopen = this.onDataChannelStateChangeHandler;
-    receiving.onclose = this.onDataChannelStateChangeHandler;
+    // receiving.onopen = this.onDataChannelStateChangeHandler;
+    // receiving.onclose = this.onDataChannelStateChangeHandler;
   }
 
   onDataChannelMessageHandler(event) {
@@ -190,10 +190,10 @@ export default class WebRTC {
     }
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  onDataChannelStateChangeHandler(event) {
-    // console.log('DC STATE CHANGE: ', event);
-  }
+  // // eslint-disable-next-line class-methods-use-this
+  // onDataChannelStateChangeHandler(event) {
+  //   // console.log('DC STATE CHANGE: ', event);
+  // }
 
   sendMessage(data) {
     // console.log('DC SEND MESSAGE: ', data);

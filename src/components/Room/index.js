@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import {
   Fab,
@@ -7,8 +8,6 @@ import {
   Tooltip,
   Snackbar,
   Slide,
-  Button,
-  ButtonGroup,
 } from '@material-ui/core';
 
 import SendIcon from '@material-ui/icons/Send';
@@ -19,12 +18,11 @@ import VideocamOffIcon from '@material-ui/icons/VideocamOff';
 import ChatIcon from '@material-ui/icons/Chat';
 import CloseChatIcon from '@material-ui/icons/SpeakerNotesOff';
 import CloseIcon from '@material-ui/icons/Close';
-import WhatsAppIcon from '@material-ui/icons/WhatsApp';
 import CallEndIcon from '@material-ui/icons/CallEnd';
 import AttachFileIcon from '@material-ui/icons/AttachFile';
-import CopyIcon from '@material-ui/icons/FileCopyOutlined';
 
 import WebRTC from '~/services/webrtc';
+import Header from './Header';
 
 // import { Container } from './styles';
 
@@ -48,8 +46,6 @@ function CustomSnackbar(props) {
 function Room(props) {
   const { isCaller, roomId } = props;
 
-  const roomIdElement = React.useRef(null);
-
   const [webRTC, setWebRTC] = React.useState(null);
 
   const [alone, setAlone] = React.useState(true);
@@ -71,19 +67,19 @@ function Room(props) {
     setAlone(false);
   };
   const onMessage = (data) => {
-    console.log(`MESSAGE RECEIVED: ${data.message}`);
+    // console.log(`MESSAGE RECEIVED: ${data.message}`);
   };
   const onFileTransfer = (fileInfo) => {
     const { fileName, fileType, fileSize } = fileInfo;
-    console.log(
-      `TO BE TRANSFERRED: ${fileName} - ${fileType} - ${fileSize} bytes`
-    );
+    // console.log(
+    //   `TO BE TRANSFERRED: ${fileName} - ${fileType} - ${fileSize} bytes`
+    // );
   };
   const onFileReady = (fileInfo, fileBlob) => {
     const { fileName, fileType, fileSize } = fileInfo;
-    console.log(
-      `FILE AVAILABLE: ${fileName} - ${fileType} - ${fileSize} bytes`
-    );
+    // console.log(
+    //   `FILE AVAILABLE: ${fileName} - ${fileType} - ${fileSize} bytes`
+    // );
 
     const a = document.createElement('a');
     a.innerText = fileName;
@@ -115,7 +111,7 @@ function Room(props) {
     }
 
     buildWebRTCObject();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useEffect(() => {
     async function initWebRTCSession() {
@@ -125,7 +121,7 @@ function Room(props) {
     }
 
     initWebRTCSession();
-  }, [webRTC]);
+  }, [webRTC]); // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useEffect(() => {
     if (snackPack.length && !snack) {
@@ -139,81 +135,57 @@ function Room(props) {
     }
   }, [snackPack, snack, snackbarIsOpen]);
 
-  const openChatPanel = () => {
-    setChatPanelIsOpen(true);
-
-    document.querySelector('.textchat').style.display = 'flex';
-    // document.querySelector('.message input').focus();
-  };
-
-  const closeChatPanel = () => {
-    setChatPanelIsOpen(false);
-
-    document.querySelector('.textchat').style.display = 'none';
-  };
-
-  const closeSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-
-    setSnackbarIsOpen(false);
-  };
-
   const addSnack = (message) => {
     setSnackPack((prev) => [
       ...prev,
       { message, key: String(new Date().getTime()) },
     ]);
   };
-
+  const closeSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarIsOpen(false);
+  };
   const exitSnackbar = () => setSnack(undefined);
 
   const turnCameraOn = () => {
     if (webRTC) {
       webRTC.unmuteTrack('video');
+      setCameraIsOn(true);
+      addSnack('Camera turned on');
     }
-
-    setCameraIsOn(true);
-    addSnack('Camera turned on');
   };
   const turnCameraOff = () => {
     if (webRTC) {
       webRTC.muteTrack('video');
+      setCameraIsOn(false);
+      addSnack('Camera turned off');
     }
-
-    setCameraIsOn(false);
-    addSnack('Camera turned off');
   };
 
   const turnMicOn = () => {
     if (webRTC) {
       webRTC.unmuteTrack('audio');
+      setMicIsOn(true);
+      addSnack('Microphone unmuted');
     }
-
-    setMicIsOn(true);
-    addSnack('Microphone unmuted');
   };
   const turnMicOff = () => {
     if (webRTC) {
       webRTC.muteTrack('audio');
-    }
-
-    setMicIsOn(false);
-    addSnack('Microphone muted');
-  };
-
-  const endCall = () => {
-    if (webRTC) {
-      webRTC.endPeerConnection();
+      setMicIsOn(false);
+      addSnack('Microphone muted');
     }
   };
 
-  const sendMessage = () => {
-    if (webRTC) {
-      const message = document.querySelector('#textmessage').value;
-      webRTC.sendMessage({ message });
-    }
+  const openChatPanel = () => {
+    setChatPanelIsOpen(true);
+    document.querySelector('.textchat').style.display = 'flex';
+  };
+  const closeChatPanel = () => {
+    setChatPanelIsOpen(false);
+    document.querySelector('.textchat').style.display = 'none';
   };
 
   const transferFile = (event) => {
@@ -246,61 +218,22 @@ function Room(props) {
       .catch((error) => console.error(error));
   };
 
-  const copyToClipboard = async () => {
-    const currentNode = roomIdElement.current;
-    const selection = window.getSelection();
-    const range = document.createRange();
-
-    range.selectNodeContents(currentNode);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    const selectedContent = selection.focusNode.innerText;
-    try {
-      await navigator.clipboard.writeText(selectedContent);
-      // console.log('ROOM ID COPIED TO CLIPBOARD');
-    } catch (error) {
-      console.error(error);
+  const endCall = () => {
+    if (webRTC) {
+      webRTC.endPeerConnection();
     }
-    selection.removeAllRanges();
+  };
+
+  const sendMessage = () => {
+    if (webRTC) {
+      const message = document.querySelector('#textmessage').value;
+      webRTC.sendMessage({ message });
+    }
   };
 
   return (
     <div className="container">
-      <header>
-        <Tooltip title="Room ID" aria-label="room id">
-          <strong>
-            <span id="room-id" ref={roomIdElement}>
-              {roomId}
-            </span>
-          </strong>
-        </Tooltip>
-        <ButtonGroup aria-label="button group">
-          <Tooltip
-            title="Copy to clipboard"
-            aria-label="copy room id to clipboard"
-          >
-            <Button variant="contained" size="small" onClick={copyToClipboard}>
-              <CopyIcon fontSize="small" />
-            </Button>
-          </Tooltip>
-          <Tooltip
-            title="Share on WhatsApp"
-            aria-label="share room id on whatsapp"
-          >
-            <Button
-              className="whatsapp"
-              size="small"
-              onClick={() =>
-                window.open(
-                  `whatsapp://send?text=${encodeURIComponent(roomId)}`
-                )
-              }
-            >
-              <WhatsAppIcon fontSize="small" />
-            </Button>
-          </Tooltip>
-        </ButtonGroup>
-      </header>
+      <Header roomId={roomId} />
       <main>
         <div className="videocall">
           <div className="someone">
@@ -450,5 +383,10 @@ function Room(props) {
     </div>
   );
 }
+
+Room.propTypes = {
+  isCaller: PropTypes.bool.isRequired,
+  roomId: PropTypes.string.isRequired,
+};
 
 export default Room;
