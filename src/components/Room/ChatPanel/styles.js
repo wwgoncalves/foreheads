@@ -23,7 +23,7 @@ export const Conversation = styled.div`
 export const Message = styled.span`
   border-radius: 10px;
   margin-top: 1rem;
-  padding: 0.25rem;
+  padding: 0.5rem 3rem 0.5rem 0.5rem;
 
   font-size: 1rem;
   line-height: 1.5rem;
@@ -34,7 +34,7 @@ export const Message = styled.span`
         margin-left: 3rem;
         border-bottom-right-radius: 0px;
 
-        background-color: #2196f3;
+        background-color: #0077ff;
         color: #fff;
       `;
     }
@@ -42,10 +42,22 @@ export const Message = styled.span`
       margin-right: 3rem;
       border-top-left-radius: 0px;
 
-      background-color: #ddd;
-      color: #333;
+      background-color: #666;
+      color: #fff;
     `;
   }}
+
+  position: relative;
+
+  &::after {
+    content: attr(data-time);
+    font-size: 0.75em;
+    color: #ddd;
+
+    position: absolute;
+    bottom: 0;
+    right: 0.5rem;
+  }
 `;
 
 export const MessageBox = styled.div`
