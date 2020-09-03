@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { InputBase, IconButton } from '@material-ui/core';
+import { CircularProgress, InputBase, IconButton } from '@material-ui/core';
 
 import SendIcon from '@material-ui/icons/Send';
 
@@ -12,38 +12,43 @@ function ChatPanel(props) {
 
   const inputMessageElement = React.useRef(null);
 
-  const handleOnSubmitMessage = () => {
-    const message = inputMessageElement.current.value;
-    sendMessage(message);
+  const handleOnSubmitMessage = (event) => {
+    event.preventDefault();
 
-    inputMessageElement.current.value = '';
+    const message = inputMessageElement.current.value;
+    if (message) {
+      sendMessage(message);
+
+      inputMessageElement.current.value = '';
+    }
   };
 
   return (
     <Container open={open}>
       <Conversation>
-        {messages &&
+        {messages.length > 0 &&
           messages.map((message) => {
-            if (message.type === 'text') {
-              return (
-                <Message
-                  data-time={new Date(message.datetime).toLocaleTimeString([], {
-                    hour12: false,
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                  origin={message.origin}
-                  key={`${message.origin}-${message.datetime}`}
-                >
-                  {message.content}
-                </Message>
-              );
-            }
-            return <Message>TBD</Message>;
+            return (
+              <Message
+                data-time={new Date(message.datetime).toLocaleTimeString([], {
+                  hour12: false,
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+                origin={message.origin}
+                key={message.key}
+              >
+                {message.type === 'file' &&
+                  (message.isSending || message.isReceiving) && (
+                    <CircularProgress color="inherit" size="1rem" />
+                  )}
+                {message.content}
+              </Message>
+            );
           })}
         <div id="testdiv" />
       </Conversation>
-      <MessageBox>
+      <MessageBox onSubmit={handleOnSubmitMessage}>
         <InputBase
           inputRef={inputMessageElement}
           placeholder="Your message"
@@ -53,7 +58,6 @@ function ChatPanel(props) {
           type="submit"
           aria-label="send message"
           onClick={handleOnSubmitMessage}
-          onSubmit={handleOnSubmitMessage}
         >
           <SendIcon />
         </IconButton>

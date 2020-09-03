@@ -1,5 +1,7 @@
 import styled, { css } from 'styled-components';
 
+import { Paper } from '@material-ui/core';
+
 export const Container = styled.div`
   flex: 1;
 
@@ -47,6 +49,19 @@ export const Message = styled.span`
     `;
   }}
 
+  div {
+    margin-right: 1rem;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
   position: relative;
 
   &::after {
@@ -58,9 +73,15 @@ export const Message = styled.span`
     bottom: 0;
     right: 0.5rem;
   }
+
+  &:first-child {
+    margin-top: auto;
+  }
 `;
 
-export const MessageBox = styled.div`
+export const MessageBox = styled(Paper).attrs({
+  component: 'form',
+})`
   display: flex;
   justify-content: stretch;
   border-top: 1px solid #ccc;

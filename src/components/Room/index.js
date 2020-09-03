@@ -40,8 +40,9 @@ function CustomSnackbar(props) {
 function Room(props) {
   const { isCaller, roomId } = props;
 
+  const localMediaElement = React.useRef(null);
+  const remoteMediaElement = React.useRef(null);
   const [webRTC, setWebRTC] = React.useState(null);
-
   const [alone, setAlone] = React.useState(true);
 
   const [messages, setMessages] = React.useState([]);
@@ -55,119 +56,14 @@ function Room(props) {
   const [snack, setSnack] = React.useState(undefined);
 
   const onLocalMedia = (stream) => {
-    const localMediaElement = document.getElementById('myVideo');
-    localMediaElement.srcObject = stream;
+    localMediaElement.current.srcObject = stream;
   };
 
   const onRemoteMedia = (stream) => {
-    const remoteMediaElement = document.getElementById('theirVideo');
-    if (remoteMediaElement.srcObject) return;
-    remoteMediaElement.srcObject = stream;
+    if (remoteMediaElement.current.srcObject) return;
+    remoteMediaElement.current.srcObject = stream;
     setAlone(false);
   };
-
-  const onMessage = (messageObject) => {
-    // eslint-disable-next-line no-param-reassign
-    messageObject.origin = 'theirs';
-    setMessages((prevMessages) => [...prevMessages, messageObject]);
-  };
-
-  const onFileTransfer = (fileInfo) => {
-    const { fileName, fileType, fileSize } = fileInfo;
-    // console.log(
-    //   `TO BE TRANSFERRED: ${fileName} - ${fileType} - ${fileSize} bytes`
-    // );
-  };
-  const onFileReady = (fileInfo, fileBlob) => {
-    const { fileName, fileType, fileSize } = fileInfo;
-    // console.log(
-    //   `FILE AVAILABLE: ${fileName} - ${fileType} - ${fileSize} bytes`
-    // );
-
-    const a = document.createElement('a');
-    a.innerText = fileName;
-    a.href = URL.createObjectURL(fileBlob);
-    a.target = '_blank';
-    document.querySelector('#testdiv').prepend(a);
-  };
-
-  React.useEffect(() => {
-    async function buildWebRTCObject() {
-      const mediaConstraints = {
-        audio: true,
-        video: {
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-      };
-
-      const webrtcOptions = {
-        networkId: roomId,
-        mediaConstraints,
-        onLocalMedia,
-        onRemoteMedia,
-        onMessage,
-        onFileTransfer,
-        onFileReady,
-      };
-      setWebRTC(await WebRTC.build(webrtcOptions));
-    }
-
-    setMessages([
-      {
-        type: 'text',
-        content:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore?',
-        origin: 'theirs',
-        datetime: new Date().getTime() + 0,
-      },
-      {
-        type: 'text',
-        content:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore?',
-        origin: 'theirs',
-        datetime: new Date().getTime() + 1,
-      },
-      {
-        type: 'text',
-        content:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore?',
-        origin: 'theirs',
-        datetime: new Date().getTime() + 2,
-      },
-      {
-        type: 'text',
-        content:
-          'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat.',
-        origin: 'mine',
-        datetime: new Date().getTime() + 3,
-      },
-    ]);
-
-    buildWebRTCObject();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  React.useEffect(() => {
-    async function initWebRTCSession() {
-      if (webRTC) {
-        await webRTC.init(isCaller);
-      }
-    }
-
-    initWebRTCSession();
-  }, [webRTC]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  React.useEffect(() => {
-    if (snackPack.length && !snack) {
-      // Set a new snack when we don't have an active one
-      setSnack(snackPack[0]);
-      setSnackPack((prev) => prev.slice(1));
-      setSnackbarIsOpen(true);
-    } else if (snackPack.length && snack && snackbarIsOpen) {
-      // Close an active snack when a new one is added
-      setSnackbarIsOpen(false);
-    }
-  }, [snackPack, snack, snackbarIsOpen]);
 
   const addSnack = (message) => {
     setSnackPack((prev) => [
@@ -215,11 +111,37 @@ function Room(props) {
 
   const openChatPanel = () => {
     setChatPanelIsOpen(true);
-    // document.querySelector('.textchat').style.display = 'flex';
   };
   const closeChatPanel = () => {
     setChatPanelIsOpen(false);
-    // document.querySelector('.textchat').style.display = 'none';
+  };
+
+  const addMessage = (messageObject) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      {
+        ...messageObject,
+        key: `${messageObject.origin}-${messageObject.datetime}`,
+      },
+    ]);
+  };
+  const replaceMessage = (messageObject) => {
+    const messageKey = `${messageObject.origin}-${messageObject.datetime}`;
+
+    setMessages((prevMessages) => {
+      const messagesArray = prevMessages;
+      const index = messagesArray.findIndex(
+        (message) => message.key === messageKey
+      );
+      if (index !== -1) {
+        messagesArray[index] = {
+          ...messageObject,
+          key: messageKey,
+        };
+      }
+
+      return [...messagesArray];
+    });
   };
 
   const transferFile = (event) => {
@@ -240,11 +162,26 @@ function Room(props) {
 
     readFile(file)
       .then((fileArrayBuffer) => {
+        const datetime = new Date().getTime();
+        const fileName = file.name;
+        const fileType = file.type;
+        const fileSize = fileArrayBuffer.byteLength;
+
+        const messageObject = {
+          type: 'file',
+          content: `${fileName} (${fileType}, ${fileSize} bytes)`,
+          origin: 'mine',
+          datetime,
+          isSending: true,
+        };
+        addMessage(messageObject);
+
         if (webRTC) {
           webRTC.sendFile({
-            fileName: file.name,
-            fileType: file.type,
-            fileSize: fileArrayBuffer.byteLength,
+            datetime,
+            fileName,
+            fileType,
+            fileSize,
             fileArrayBuffer,
           });
         }
@@ -270,8 +207,150 @@ function Room(props) {
     }
 
     messageObject.origin = 'mine';
-    setMessages((prevMessages) => [...prevMessages, messageObject]);
+    addMessage(messageObject);
   };
+
+  const onFileSent = (fileInfo) => {
+    const { datetime, fileName, fileType, fileSize } = fileInfo;
+
+    const messageObject = {
+      type: 'file',
+      content: `${fileName} (${fileType}, ${fileSize} bytes)`,
+      origin: 'mine',
+      datetime,
+      isSending: false,
+    };
+
+    replaceMessage(messageObject);
+  };
+
+  const onMessage = (messageObject) => {
+    // eslint-disable-next-line no-param-reassign
+    messageObject.origin = 'theirs';
+    addMessage(messageObject);
+  };
+
+  const onFileTransfer = (fileInfo) => {
+    const { datetime, fileName, fileType, fileSize } = fileInfo;
+    // console.log(
+    //   `TO BE TRANSFERRED: ${fileName} - ${fileType} - ${fileSize} bytes`
+    // );
+    const messageObject = {
+      type: 'file',
+      content: `${fileName} (${fileType}, ${fileSize} bytes)`,
+      origin: 'theirs',
+      datetime,
+      isReceiving: true,
+    };
+
+    addMessage(messageObject);
+  };
+  const onFileReady = (fileInfo, fileBlob) => {
+    const { datetime, fileName, fileType, fileSize } = fileInfo;
+    // console.log(
+    //   `FILE AVAILABLE: ${fileName} - ${fileType} - ${fileSize} bytes`
+    // );
+
+    // const a = document.createElement('a');
+    const a = {};
+    a.innerText = `${fileName} (${fileType}, ${fileSize} bytes)`;
+    a.href = URL.createObjectURL(fileBlob);
+    a.target = '_blank';
+    // document.querySelector('#testdiv').prepend(a);
+
+    const messageObject = {
+      type: 'file',
+      content: (
+        <a href={a.href} target={a.target}>
+          {a.innerText}
+        </a>
+      ),
+      origin: 'theirs',
+      datetime,
+      isReceiving: false,
+    };
+
+    replaceMessage(messageObject);
+  };
+
+  React.useEffect(() => {
+    async function buildWebRTCObject() {
+      const mediaConstraints = {
+        audio: true,
+        video: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+      };
+
+      const webrtcOptions = {
+        networkId: roomId,
+        mediaConstraints,
+        onLocalMedia,
+        onRemoteMedia,
+        onFileSent,
+        onMessage,
+        onFileTransfer,
+        onFileReady,
+      };
+      setWebRTC(await WebRTC.build(webrtcOptions));
+    }
+
+    // setMessages([
+    //   {
+    //     type: 'text',
+    //     content:
+    //       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore?',
+    //     origin: 'theirs',
+    //     datetime: new Date().getTime() + 0,
+    //   },
+    //   {
+    //     type: 'text',
+    //     content:
+    //       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore?',
+    //     origin: 'theirs',
+    //     datetime: new Date().getTime() + 1,
+    //   },
+    //   {
+    //     type: 'text',
+    //     content:
+    //       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore?',
+    //     origin: 'theirs',
+    //     datetime: new Date().getTime() + 2,
+    //   },
+    //   {
+    //     type: 'text',
+    //     content:
+    //       'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat.',
+    //     origin: 'mine',
+    //     datetime: new Date().getTime() + 3,
+    //   },
+    // ]);
+
+    buildWebRTCObject();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  React.useEffect(() => {
+    async function initWebRTCSession() {
+      if (webRTC) {
+        await webRTC.init(isCaller);
+      }
+    }
+
+    initWebRTCSession();
+  }, [webRTC]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  React.useEffect(() => {
+    if (snackPack.length && !snack) {
+      // Set a new snack when we don't have an active one
+      setSnack(snackPack[0]);
+      setSnackPack((prev) => prev.slice(1));
+      setSnackbarIsOpen(true);
+    } else if (snackPack.length && snack && snackbarIsOpen) {
+      // Close an active snack when a new one is added
+      setSnackbarIsOpen(false);
+    }
+  }, [snackPack, snack, snackbarIsOpen]);
 
   return (
     <div className="container">
@@ -280,9 +359,9 @@ function Room(props) {
         <div className="videocall">
           <div className="someone">
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-            <video id="theirVideo" autoPlay />
+            <video id="theirVideo" ref={remoteMediaElement} autoPlay />
             <div className={`me ${alone ? 'alone' : ''}`}>
-              <video id="myVideo" autoPlay muted />
+              <video id="myVideo" ref={localMediaElement} autoPlay muted />
             </div>
           </div>
         </div>

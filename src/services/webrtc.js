@@ -14,6 +14,7 @@ export default class WebRTC {
     this.sendMessage = this.sendMessage.bind(this);
     this.readMessage = this.readMessage.bind(this);
     this.sendFile = this.sendFile.bind(this);
+    this.sendFileRawData = this.sendFileRawData.bind(this);
     this.readFile = this.readFile.bind(this);
     this.buildFile = this.buildFile.bind(this);
     this.muteTrack = this.muteTrack.bind(this);
@@ -26,6 +27,7 @@ export default class WebRTC {
 
     this.onLocalMedia = options.onLocalMedia;
     this.onRemoteMedia = options.onRemoteMedia;
+    this.onFileSent = options.onFileSent;
     this.onMessage = options.onMessage;
     this.onFileTransfer = options.onFileTransfer;
     this.onFileReady = options.onFileReady;
@@ -42,7 +44,11 @@ export default class WebRTC {
     this.messageDataChannel = this.pc.createDataChannel('messageDataChannel');
 
     this.fileDataChannel = this.pc.createDataChannel('fileDataChannel');
+    this.maxChunkSize = 16000; // 16kB due to current browsers interoperability issues
     this.fileDataChannel.binaryType = 'arraybuffer';
+    this.fileDataChannel.bufferedAmountLowThreshold = this.maxChunkSize;
+    this.bufferedAmountHighThreshold = 10000000; // 10MB due to current browsers bugs
+    this.timeoutHandler = null;
     this.fileBuffer = [];
     this.fileInfo = {};
     this.fileInfo.fileState = 'waiting'; // 'waiting' OR 'receiving'
@@ -161,17 +167,80 @@ export default class WebRTC {
   }
 
   sendFile(fileData) {
-    const { fileName, fileType, fileSize, fileArrayBuffer } = fileData;
-    const maxChunkSize = 16000; // 16kB due to current browsers interoperability issues
+    const {
+      datetime,
+      fileName,
+      fileType,
+      fileSize,
+      fileArrayBuffer,
+    } = fileData;
 
-    this.fileDataChannel.send(JSON.stringify({ fileName, fileType, fileSize }));
+    // const maxChunkSize = 16000; // 16kB due to current browsers interoperability issues
 
-    for (let bytesSent = 0; bytesSent < fileSize; bytesSent += maxChunkSize) {
-      const bytesToBeSent = Math.min(bytesSent + maxChunkSize, fileSize);
+    const fileInfo = {
+      datetime,
+      fileName,
+      fileType,
+      fileSize,
+    };
+
+    this.fileDataChannel.send(JSON.stringify(fileInfo));
+
+    const initialByte = 0;
+    this.sendFileRawData(initialByte, fileInfo, fileArrayBuffer);
+  }
+
+  sendFileRawData(initialByte, fileInfo, fileRawData) {
+    if (this.timeoutHandler !== null) {
+      clearTimeout(this.timeoutHandler);
+      this.timeoutHandler = null;
+    }
+
+    const { fileSize } = fileInfo;
+
+    let { bufferedAmount } = this.fileDataChannel;
+    let bytesSent = initialByte;
+
+    while (bytesSent < fileSize) {
+      const bytesToBeSent = Math.min(bytesSent + this.maxChunkSize, fileSize);
 
       this.fileDataChannel.send(
-        new Uint8Array(fileArrayBuffer.slice(bytesSent, bytesToBeSent))
+        new Uint8Array(fileRawData.slice(bytesSent, bytesToBeSent))
       );
+      bytesSent += this.maxChunkSize;
+      bufferedAmount += this.maxChunkSize;
+
+      // console.log('1>');
+
+      if (bufferedAmount >= this.bufferedAmountHighThreshold) {
+        // eslint-disable-next-line no-loop-func
+        this.fileDataChannel.onbufferedamountlow = () => {
+          this.sendFileRawData(bytesSent, fileInfo, fileRawData);
+        };
+
+        // Workaround due to browsers incorrectly calculating the amount of buffered data and
+        // therefore not firing the 'bufferamountlow' event.
+        if (
+          this.fileDataChannel.bufferedAmount <
+          this.fileDataChannel.bufferedAmountLowThreshold
+        ) {
+          this.timeoutHandler = setTimeout(
+            this.sendFileRawData(bytesSent, fileInfo, fileRawData),
+            0
+          );
+        }
+
+        // console.log(
+        //   `Paused, sent (${bytesSent}), buffAmt (${bufferedAmount}), chanBuffAmt (${this.fileDataChannel.bufferedAmount})`
+        // );
+        break;
+      }
+    }
+
+    if (bytesSent >= fileSize) {
+      this.fileDataChannel.onbufferedamountlow = null;
+      this.onFileSent(fileInfo);
+      console.log(`SENDING FINISHED!`);
     }
   }
 
@@ -200,6 +269,8 @@ export default class WebRTC {
       if (this.fileInfo.bytesReceived === this.fileInfo.fileSize) {
         this.buildFile();
       }
+
+      // console.log('>1');
     } else {
       console.error('DC READ FILE ERROR');
     }
