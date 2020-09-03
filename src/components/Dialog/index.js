@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import {
   Button,
@@ -107,5 +108,10 @@ function Dialog(props) {
     </div>
   );
 }
+
+Dialog.propTypes = {
+  handleCreateNewRoom: PropTypes.func.isRequired,
+  handleJoinExistingRoom: PropTypes.func.isRequired,
+};
 
 export default Dialog;

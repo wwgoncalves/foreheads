@@ -7,8 +7,7 @@ import Room from '~/components/Room';
 
 import firebase from '~/services/firebase';
 
-import '~/assets/css/App.css';
-import GlobalStyle from './styles/global';
+import GlobalStyle from '~/styles/global';
 
 function App() {
   const [chosen, setChosen] = React.useState(false);
