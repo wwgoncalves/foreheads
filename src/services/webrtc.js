@@ -51,7 +51,7 @@ export default class WebRTC {
     this.timeoutHandler = null;
     this.fileBuffer = [];
     this.fileInfo = {};
-    this.fileInfo.fileState = 'waiting'; // 'waiting' OR 'receiving'
+    this.fileInfo.fileState = 'waiting'; // Two states: 'waiting' OR 'receiving'
 
     this.pc.onicecandidate = this.onICECandidateHandler;
     this.pc.ontrack = this.onTrackHandler;
@@ -175,8 +175,6 @@ export default class WebRTC {
       fileArrayBuffer,
     } = fileData;
 
-    // const maxChunkSize = 16000; // 16kB due to current browsers interoperability issues
-
     const fileInfo = {
       datetime,
       fileName,
@@ -210,9 +208,8 @@ export default class WebRTC {
       bytesSent += this.maxChunkSize;
       bufferedAmount += this.maxChunkSize;
 
-      // console.log('1>');
-
       if (bufferedAmount >= this.bufferedAmountHighThreshold) {
+        // To assure that the data sending is resumed when buffered amount goes down.
         // eslint-disable-next-line no-loop-func
         this.fileDataChannel.onbufferedamountlow = () => {
           this.sendFileRawData(bytesSent, fileInfo, fileRawData);
@@ -230,9 +227,6 @@ export default class WebRTC {
           );
         }
 
-        // console.log(
-        //   `Paused, sent (${bytesSent}), buffAmt (${bufferedAmount}), chanBuffAmt (${this.fileDataChannel.bufferedAmount})`
-        // );
         break;
       }
     }
@@ -240,7 +234,6 @@ export default class WebRTC {
     if (bytesSent >= fileSize) {
       this.fileDataChannel.onbufferedamountlow = null;
       this.onFileSent(fileInfo);
-      console.log(`SENDING FINISHED!`);
     }
   }
 
@@ -269,8 +262,6 @@ export default class WebRTC {
       if (this.fileInfo.bytesReceived === this.fileInfo.fileSize) {
         this.buildFile();
       }
-
-      // console.log('>1');
     } else {
       console.error('DC READ FILE ERROR');
     }

@@ -46,7 +46,6 @@ function ChatPanel(props) {
               </Message>
             );
           })}
-        <div id="testdiv" />
       </Conversation>
       <MessageBox onSubmit={handleOnSubmitMessage}>
         <InputBase

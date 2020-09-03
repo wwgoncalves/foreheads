@@ -232,9 +232,7 @@ function Room(props) {
 
   const onFileTransfer = (fileInfo) => {
     const { datetime, fileName, fileType, fileSize } = fileInfo;
-    // console.log(
-    //   `TO BE TRANSFERRED: ${fileName} - ${fileType} - ${fileSize} bytes`
-    // );
+
     const messageObject = {
       type: 'file',
       content: `${fileName} (${fileType}, ${fileSize} bytes)`,
@@ -247,16 +245,11 @@ function Room(props) {
   };
   const onFileReady = (fileInfo, fileBlob) => {
     const { datetime, fileName, fileType, fileSize } = fileInfo;
-    // console.log(
-    //   `FILE AVAILABLE: ${fileName} - ${fileType} - ${fileSize} bytes`
-    // );
 
-    // const a = document.createElement('a');
-    const a = {};
+    const a = {}; // File transferred is available through a link (anchor)
     a.innerText = `${fileName} (${fileType}, ${fileSize} bytes)`;
     a.href = URL.createObjectURL(fileBlob);
     a.target = '_blank';
-    // document.querySelector('#testdiv').prepend(a);
 
     const messageObject = {
       type: 'file',
@@ -295,37 +288,6 @@ function Room(props) {
       };
       setWebRTC(await WebRTC.build(webrtcOptions));
     }
-
-    // setMessages([
-    //   {
-    //     type: 'text',
-    //     content:
-    //       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore?',
-    //     origin: 'theirs',
-    //     datetime: new Date().getTime() + 0,
-    //   },
-    //   {
-    //     type: 'text',
-    //     content:
-    //       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore?',
-    //     origin: 'theirs',
-    //     datetime: new Date().getTime() + 1,
-    //   },
-    //   {
-    //     type: 'text',
-    //     content:
-    //       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore?',
-    //     origin: 'theirs',
-    //     datetime: new Date().getTime() + 2,
-    //   },
-    //   {
-    //     type: 'text',
-    //     content:
-    //       'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat.',
-    //     origin: 'mine',
-    //     datetime: new Date().getTime() + 3,
-    //   },
-    // ]);
 
     buildWebRTCObject();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
