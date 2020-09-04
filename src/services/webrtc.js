@@ -311,7 +311,7 @@ export default class WebRTC {
     this.fileInfo.fileState = 'waiting';
   }
 
-  async muteTrack(kind) {
+  muteTrack(kind) {
     this.stream.getTracks().forEach((track) => {
       if (track.kind === kind) {
         // eslint-disable-next-line no-param-reassign
@@ -320,7 +320,7 @@ export default class WebRTC {
     });
   }
 
-  async unmuteTrack(kind) {
+  unmuteTrack(kind) {
     this.stream.getTracks().forEach((track) => {
       if (track.kind === kind) {
         // eslint-disable-next-line no-param-reassign

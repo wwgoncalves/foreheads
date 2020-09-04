@@ -199,12 +199,15 @@ function Room(props) {
   };
 
   const endCall = () => {
-    if (webRTC) {
-      webRTC.endPeerConnection();
-    }
+    setWebRTC((prevWebRTC) => {
+      if (prevWebRTC) {
+        prevWebRTC.endPeerConnection();
+        return null;
+      }
+      return prevWebRTC;
+    });
 
     setCallIsEnded(true);
-    setWebRTC(null);
     setOpenDialog(true);
   };
 
@@ -280,9 +283,7 @@ function Room(props) {
   };
 
   const onDisconnected = () => {
-    setCallIsEnded(true);
-    setWebRTC(null);
-    setOpenDialog(true);
+    endCall();
   };
 
   React.useEffect(() => {
@@ -394,7 +395,7 @@ function Room(props) {
           onClose={handleCloseDialog}
           aria-labelledby="form-dialog-title"
         >
-          <DialogTitle id="form-dialog-title">Call ended.</DialogTitle>
+          <DialogTitle id="form-dialog-title">Call ended</DialogTitle>
         </Dialog>
       )}
     </Container>
