@@ -5,14 +5,22 @@ import { CircularProgress, InputBase, IconButton } from '@material-ui/core';
 
 import SendIcon from '@material-ui/icons/Send';
 
-import { Container, Conversation, Message, MessageBox } from './styles';
+import {
+  Container,
+  CloseButton,
+  Conversation,
+  Message,
+  MessageBox,
+} from './styles';
 
 function ChatPanel(props) {
-  const { open, messages, sendMessage } = props;
+  const { open, messages, sendMessage, onClose, callIsEnded } = props;
 
   const inputMessageElement = React.useRef(null);
 
   const handleOnSubmitMessage = (event) => {
+    if (callIsEnded) return;
+
     event.preventDefault();
 
     const message = inputMessageElement.current.value;
@@ -25,6 +33,7 @@ function ChatPanel(props) {
 
   return (
     <Container open={open}>
+      <CloseButton onClick={onClose} />
       <Conversation>
         {messages.length > 0 &&
           messages.map((message) => {
@@ -52,11 +61,13 @@ function ChatPanel(props) {
           inputRef={inputMessageElement}
           placeholder="Your message"
           inputProps={{ 'aria-label': 'type your message' }}
+          disabled={callIsEnded}
         />
         <IconButton
           type="submit"
           aria-label="send message"
           onClick={handleOnSubmitMessage}
+          disabled={callIsEnded}
         >
           <SendIcon />
         </IconButton>
@@ -76,6 +87,8 @@ ChatPanel.propTypes = {
     })
   ),
   sendMessage: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+  callIsEnded: PropTypes.bool.isRequired,
 };
 
 ChatPanel.defaultProps = {

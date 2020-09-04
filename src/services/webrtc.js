@@ -6,6 +6,9 @@ export default class WebRTC {
     this.sendSignal = this.sendSignal.bind(this);
     this.readSignal = this.readSignal.bind(this);
     this.onICECandidateHandler = this.onICECandidateHandler.bind(this);
+    this.onICEConnectionStateChange = this.onICEConnectionStateChange.bind(
+      this
+    );
     this.onTrackHandler = this.onTrackHandler.bind(this);
     this.onDataChannelHandler = this.onDataChannelHandler.bind(this);
     this.onDataChannelMessageHandler = this.onDataChannelMessageHandler.bind(
@@ -31,6 +34,7 @@ export default class WebRTC {
     this.onMessage = options.onMessage;
     this.onFileTransfer = options.onFileTransfer;
     this.onFileReady = options.onFileReady;
+    this.onDisconnected = options.onDisconnected;
 
     this.servers = {
       iceServers: [
@@ -54,8 +58,8 @@ export default class WebRTC {
     this.fileInfo.fileState = 'waiting'; // Two states: 'waiting' OR 'receiving'
 
     this.pc.onicecandidate = this.onICECandidateHandler;
+    this.pc.oniceconnectionstatechange = this.onICEConnectionStateChange;
     this.pc.ontrack = this.onTrackHandler;
-
     this.pc.ondatachannel = this.onDataChannelHandler;
 
     this.signallingChannel.subscribe(this.readSignal);
@@ -69,6 +73,7 @@ export default class WebRTC {
 
       return new WebRTC(stream, options);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(error);
       return null;
     }
@@ -87,6 +92,7 @@ export default class WebRTC {
         this.sendSignal(JSON.stringify({ sdp: this.pc.localDescription }));
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(error);
     }
   }
@@ -116,6 +122,7 @@ export default class WebRTC {
           await this.pc.setLocalDescription(await this.pc.createAnswer());
           this.sendSignal(JSON.stringify({ sdp: this.pc.localDescription }));
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.error(error);
         }
       } else if (msg.sdp.type === 'answer') {
@@ -127,6 +134,13 @@ export default class WebRTC {
   onICECandidateHandler(event) {
     if (event.candidate) {
       this.sendSignal(JSON.stringify({ ice: event.candidate }));
+    }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  onICEConnectionStateChange(event) {
+    if (event.target.iceConnectionState === 'disconnected') {
+      this.onDisconnected();
     }
   }
 
@@ -150,11 +164,14 @@ export default class WebRTC {
         this.readFile(event.data);
         break;
       default:
+        // eslint-disable-next-line no-console
         console.error({ error: 'Data channel unknown.' });
     }
   }
 
   sendMessage(data) {
+    if (this.messageDataChannel.readyState !== 'open') return;
+
     this.messageDataChannel.send(
       JSON.stringify({ ...data, sender: this.myId })
     );
@@ -167,6 +184,8 @@ export default class WebRTC {
   }
 
   sendFile(fileData) {
+    if (this.fileDataChannel.readyState !== 'open') return;
+
     const {
       datetime,
       fileName,
@@ -189,6 +208,8 @@ export default class WebRTC {
   }
 
   sendFileRawData(initialByte, fileInfo, fileRawData) {
+    if (this.fileDataChannel.readyState !== 'open') return;
+
     if (this.timeoutHandler !== null) {
       clearTimeout(this.timeoutHandler);
       this.timeoutHandler = null;
@@ -263,7 +284,11 @@ export default class WebRTC {
         this.buildFile();
       }
     } else {
-      console.error('DC READ FILE ERROR');
+      // eslint-disable-next-line no-console
+      console.error({
+        error:
+          'Error in reading a received file through a data channel. Request a resending or reload the website.',
+      });
     }
   }
 

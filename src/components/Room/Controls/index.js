@@ -28,38 +28,44 @@ function Controls(props) {
     closeChatPanel,
     transferFile,
     endCall,
+    callIsEnded,
   } = props;
 
   return (
     <Container>
-      <div>
-        {cameraIsOn ? (
-          <Tooltip title="Turn camera off" aria-label="turn camera off">
-            <Fab color="default" onClick={turnCameraOff}>
-              <VideocamIcon />
-            </Fab>
-          </Tooltip>
-        ) : (
-          <Tooltip title="Turn camera on" aria-label="turn camera on">
-            <Fab color="secondary" onClick={turnCameraOn}>
-              <VideocamOffIcon />
-            </Fab>
-          </Tooltip>
-        )}
-        {micIsOn ? (
-          <Tooltip title="Turn microphone off" aria-label="turn microphone off">
-            <Fab color="default" onClick={turnMicOff}>
-              <MicIcon />
-            </Fab>
-          </Tooltip>
-        ) : (
-          <Tooltip title="Turn microphone on" aria-label="turn microphone on">
-            <Fab color="secondary" onClick={turnMicOn}>
-              <MicOffIcon />
-            </Fab>
-          </Tooltip>
-        )}
-      </div>
+      {!callIsEnded && (
+        <div>
+          {cameraIsOn ? (
+            <Tooltip title="Turn camera off" aria-label="turn camera off">
+              <Fab color="default" onClick={turnCameraOff}>
+                <VideocamIcon />
+              </Fab>
+            </Tooltip>
+          ) : (
+            <Tooltip title="Turn camera on" aria-label="turn camera on">
+              <Fab color="secondary" onClick={turnCameraOn}>
+                <VideocamOffIcon />
+              </Fab>
+            </Tooltip>
+          )}
+          {micIsOn ? (
+            <Tooltip
+              title="Turn microphone off"
+              aria-label="turn microphone off"
+            >
+              <Fab color="default" onClick={turnMicOff}>
+                <MicIcon />
+              </Fab>
+            </Tooltip>
+          ) : (
+            <Tooltip title="Turn microphone on" aria-label="turn microphone on">
+              <Fab color="secondary" onClick={turnMicOn}>
+                <MicOffIcon />
+              </Fab>
+            </Tooltip>
+          )}
+        </div>
+      )}
 
       {!alone && (
         <>
@@ -77,22 +83,31 @@ function Controls(props) {
                 </Fab>
               </Tooltip>
             )}
-            <Tooltip title="Transfer file" aria-label="transfer file">
-              <label htmlFor="transfer-file">
-                <input type="file" id="transfer-file" onChange={transferFile} />
-                <Fab color="default" component="span">
-                  <AttachFileIcon />
+            {!callIsEnded && (
+              <Tooltip title="Transfer file" aria-label="transfer file">
+                <label htmlFor="transfer-file">
+                  <input
+                    type="file"
+                    id="transfer-file"
+                    onChange={transferFile}
+                  />
+                  <Fab color="default" component="span">
+                    <AttachFileIcon />
+                  </Fab>
+                </label>
+              </Tooltip>
+            )}
+          </div>
+
+          {!callIsEnded && (
+            <div>
+              <Tooltip title="End call" aria-label="end call">
+                <Fab color="secondary" onClick={endCall}>
+                  <CallEndIcon />
                 </Fab>
-              </label>
-            </Tooltip>
-          </div>
-          <div>
-            <Tooltip title="End call" aria-label="end call">
-              <Fab color="secondary" onClick={endCall}>
-                <CallEndIcon />
-              </Fab>
-            </Tooltip>
-          </div>
+              </Tooltip>
+            </div>
+          )}
         </>
       )}
     </Container>
@@ -112,6 +127,7 @@ Controls.propTypes = {
   closeChatPanel: PropTypes.func.isRequired,
   transferFile: PropTypes.func.isRequired,
   endCall: PropTypes.func.isRequired,
+  callIsEnded: PropTypes.bool.isRequired,
 };
 
 export default Controls;

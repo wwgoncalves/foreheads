@@ -1,14 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { IconButton, Snackbar, Slide } from '@material-ui/core';
+import {
+  IconButton,
+  Snackbar,
+  Slide,
+  Dialog,
+  DialogTitle,
+} from '@material-ui/core';
 
 import CloseIcon from '@material-ui/icons/Close';
 
 import WebRTC from '~/services/webrtc';
 
 import Header from './Header';
-import TextChat from './ChatPanel';
+import ChatPanel from './ChatPanel';
 import Controls from './Controls';
 
 import { Container } from './styles';
@@ -39,6 +45,7 @@ function Room(props) {
   const remoteMediaElement = React.useRef(null);
   const [webRTC, setWebRTC] = React.useState(null);
   const [alone, setAlone] = React.useState(true);
+  const [callIsEnded, setCallIsEnded] = React.useState(false);
 
   const [messages, setMessages] = React.useState([]);
   const [chatPanelIsOpen, setChatPanelIsOpen] = React.useState(false);
@@ -49,6 +56,8 @@ function Room(props) {
   const [snackbarIsOpen, setSnackbarIsOpen] = React.useState(false);
   const [snackPack, setSnackPack] = React.useState([]);
   const [snack, setSnack] = React.useState(undefined);
+
+  const [openDialog, setOpenDialog] = React.useState(false);
 
   const onLocalMedia = (stream) => {
     localMediaElement.current.srcObject = stream;
@@ -73,6 +82,10 @@ function Room(props) {
     setSnackbarIsOpen(false);
   };
   const exitSnackbar = () => setSnack(undefined);
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
 
   const turnCameraOn = () => {
     if (webRTC) {
@@ -189,6 +202,10 @@ function Room(props) {
     if (webRTC) {
       webRTC.endPeerConnection();
     }
+
+    setCallIsEnded(true);
+    setWebRTC(null);
+    setOpenDialog(true);
   };
 
   const sendMessage = (message) => {
@@ -262,6 +279,12 @@ function Room(props) {
     replaceMessage(messageObject);
   };
 
+  const onDisconnected = () => {
+    setCallIsEnded(true);
+    setWebRTC(null);
+    setOpenDialog(true);
+  };
+
   React.useEffect(() => {
     async function buildWebRTCObject() {
       const mediaConstraints = {
@@ -281,6 +304,7 @@ function Room(props) {
         onMessage,
         onFileTransfer,
         onFileReady,
+        onDisconnected,
       };
       setWebRTC(await WebRTC.build(webrtcOptions));
     }
@@ -318,15 +342,17 @@ function Room(props) {
           <div className="someone">
             {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
             <video id="theirVideo" ref={remoteMediaElement} autoPlay />
-            <div className={`me ${alone ? 'alone' : ''}`}>
-              <video id="myVideo" ref={localMediaElement} autoPlay muted />
-            </div>
+          </div>
+          <div className={`me ${alone ? 'alone' : ''}`}>
+            <video id="myVideo" ref={localMediaElement} autoPlay muted />
           </div>
         </div>
-        <TextChat
+        <ChatPanel
           open={chatPanelIsOpen}
           messages={messages}
           sendMessage={sendMessage}
+          onClose={closeChatPanel}
+          callIsEnded={callIsEnded}
         />
         <Controls
           alone={alone}
@@ -341,6 +367,7 @@ function Room(props) {
           closeChatPanel={closeChatPanel}
           transferFile={transferFile}
           endCall={endCall}
+          callIsEnded={callIsEnded}
         />
         <CustomSnackbar
           key={snack ? snack.key : undefined}
@@ -361,6 +388,15 @@ function Room(props) {
           }
         />
       </main>
+      {callIsEnded && openDialog && (
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          aria-labelledby="form-dialog-title"
+        >
+          <DialogTitle id="form-dialog-title">Call ended.</DialogTitle>
+        </Dialog>
+      )}
     </Container>
   );
 }

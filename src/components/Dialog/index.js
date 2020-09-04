@@ -4,14 +4,13 @@ import PropTypes from 'prop-types';
 import {
   Button,
   TextField,
-  Dialog as MUDialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
 } from '@material-ui/core';
 
-// import { Container } from './styles';
+import { Container } from './styles';
 
 function Dialog(props) {
   const { handleCreateNewRoom, handleJoinExistingRoom } = props;
@@ -45,67 +44,65 @@ function Dialog(props) {
   };
 
   return (
-    <div>
-      <MUDialog
-        open={open}
-        onClose={handleClose}
-        disableBackdropClick
-        disableEscapeKeyDown
-        aria-labelledby="form-dialog-title"
-      >
-        {!joinSelected ? (
-          <>
-            <DialogTitle id="form-dialog-title">
-              Create or join an existing room
-            </DialogTitle>
-            <DialogContent>
-              <DialogActions>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={handleSelectCreate}
-                >
-                  Create a new
-                </Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSelectJoin}
-                >
-                  Join a room
-                </Button>
-              </DialogActions>
-            </DialogContent>
-          </>
-        ) : (
-          <form onSubmit={handleJoin}>
-            <DialogTitle id="form-dialog-title">
-              Join an existing room
-            </DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                To join an existing room, provide its identifier below.
-              </DialogContentText>
-              <TextField
-                required
-                id="existing-room-id"
-                label="Existing Room ID"
-                type="text"
-                fullWidth
-                variant="outlined"
-                value={existingRoomID}
-                onChange={handleChange}
-              />
-            </DialogContent>
+    <Container
+      open={open}
+      onClose={handleClose}
+      disableBackdropClick
+      disableEscapeKeyDown
+      aria-labelledby="form-dialog-title"
+    >
+      {!joinSelected ? (
+        <>
+          <DialogTitle id="form-dialog-title">
+            Create or join an existing room
+          </DialogTitle>
+          <DialogContent>
             <DialogActions>
-              <Button type="submit" variant="contained" color="primary">
-                Join
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleSelectCreate}
+              >
+                Create a new
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSelectJoin}
+              >
+                Join a room
               </Button>
             </DialogActions>
-          </form>
-        )}
-      </MUDialog>
-    </div>
+          </DialogContent>
+        </>
+      ) : (
+        <form onSubmit={handleJoin}>
+          <DialogTitle id="form-dialog-title">
+            Join an existing room
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              To join an existing room, provide its identifier below.
+            </DialogContentText>
+            <TextField
+              required
+              id="existing-room-id"
+              label="Existing Room ID"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={existingRoomID}
+              onChange={handleChange}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button type="submit" variant="contained" color="primary">
+              Join
+            </Button>
+          </DialogActions>
+        </form>
+      )}
+    </Container>
   );
 }
 

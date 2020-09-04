@@ -20,45 +20,56 @@ export const Container = styled.div`
   }
 
   .videocall {
-    flex: 4;
+    flex: 3;
+
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+
+    max-width: 100vw;
+    max-height: calc(100vh - var(--headerHeight));
+
+    position: relative;
   }
 
   .videocall .someone {
     position: relative;
-
-    width: 100%;
-    height: 100%;
-    max-width: 100vw;
-    max-height: calc(100vh - var(--headerHeight));
+    flex: 1 0 300px;
+    max-width: 640px;
 
     resize: both;
     overflow: hidden;
   }
   .videocall .someone video {
+    position: absolute;
+    left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
   }
 
   .videocall .me {
-    position: absolute;
-    top: 0;
-    left: 0;
-
-    transform-origin: top left;
-    transform: scale(0.15);
-
-    transition: transform 500ms linear;
+    position: relative;
+    flex: 1 0 300px;
+    max-width: 640px;
 
     resize: both;
     overflow: hidden;
   }
-  .videocall .me.alone {
-    margin: 0;
-    transform: scale(1);
-
+  .videocall .me video {
+    position: absolute;
+    left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
-    max-width: 100vw;
-    max-height: calc(100vh - var(--headerHeight));
+  }
+  .videocall .me.alone {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+
+    max-width: unset;
   }
 `;
