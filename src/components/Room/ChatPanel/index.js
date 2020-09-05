@@ -14,7 +14,14 @@ import {
 } from './styles';
 
 function ChatPanel(props) {
-  const { open, messages, sendMessage, onClose, callIsEnded } = props;
+  const {
+    open,
+    messages,
+    sendMessage,
+    onClose,
+    callIsEnded,
+    windowDimensions,
+  } = props;
 
   const inputMessageElement = React.useRef(null);
 
@@ -32,7 +39,7 @@ function ChatPanel(props) {
   };
 
   return (
-    <Container open={open}>
+    <Container open={open} windowDimensions={windowDimensions}>
       <CloseButton onClick={onClose} />
       <Conversation>
         {messages.length > 0 &&
@@ -49,7 +56,11 @@ function ChatPanel(props) {
               >
                 {message.type === 'file' &&
                   (message.isSending || message.isReceiving) && (
-                    <CircularProgress color="inherit" size="1rem" />
+                    <CircularProgress
+                      color="inherit"
+                      size="1rem"
+                      disableShrink
+                    />
                   )}
                 {message.content}
               </Message>
@@ -89,6 +100,10 @@ ChatPanel.propTypes = {
   sendMessage: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
   callIsEnded: PropTypes.bool.isRequired,
+  windowDimensions: PropTypes.shape({
+    width: PropTypes.number,
+    height: PropTypes.number,
+  }).isRequired,
 };
 
 ChatPanel.defaultProps = {

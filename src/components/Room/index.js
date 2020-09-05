@@ -58,6 +58,10 @@ function Room(props) {
   const [snack, setSnack] = React.useState(undefined);
 
   const [openDialog, setOpenDialog] = React.useState(false);
+  const [windowDimensions, setWindowDimensions] = React.useState({
+    width: 0,
+    height: 0,
+  });
 
   const onLocalMedia = (stream) => {
     localMediaElement.current.srcObject = stream;
@@ -286,6 +290,13 @@ function Room(props) {
     endCall();
   };
 
+  const updateWindowDimensions = () => {
+    setWindowDimensions({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+  };
+
   React.useEffect(() => {
     async function buildWebRTCObject() {
       const mediaConstraints = {
@@ -310,7 +321,14 @@ function Room(props) {
       setWebRTC(await WebRTC.build(webrtcOptions));
     }
 
+    updateWindowDimensions();
+    window.addEventListener('resize', updateWindowDimensions);
+
     buildWebRTCObject();
+
+    return () => {
+      window.removeEventListener('resize', updateWindowDimensions);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   React.useEffect(() => {
@@ -354,6 +372,7 @@ function Room(props) {
           sendMessage={sendMessage}
           onClose={closeChatPanel}
           callIsEnded={callIsEnded}
+          windowDimensions={windowDimensions}
         />
         <Controls
           alone={alone}

@@ -1,7 +1,8 @@
 import styled from 'styled-components';
 
 export const Container = styled.div`
-  min-height: 100vh;
+  min-height: 100%;
+  max-height: 100%;
 
   background-color: var(--appBackgroundColor);
   color: #f0f0f0;
@@ -28,6 +29,8 @@ export const Container = styled.div`
 
     max-width: 100vw;
     max-height: calc(100vh - var(--headerHeight));
+
+    min-height: 0;
 
     position: relative;
   }

@@ -15,7 +15,8 @@ export const Container = styled.div`
 
   background-color: #f0f0f0;
   color: var(--appBackgroundColor);
-  max-height: calc(100vh - var(--headerHeight));
+  max-height: ${({ windowDimensions: wd }) =>
+    `calc(${wd.height}px - var(--headerHeight))`};
 
   display: ${({ open }) => (open ? 'flex' : 'none')};
   flex-direction: column;
@@ -34,7 +35,7 @@ export const CloseButton = styled(IconButton).attrs({
   right: 0;
   z-index: 3;
 
-  opacity: 0.5;
+  opacity: 0.7;
 
   &:hover {
     opacity: 1;
@@ -42,7 +43,7 @@ export const CloseButton = styled(IconButton).attrs({
 `;
 
 export const Conversation = styled.div`
-  flex-grow: 1;
+  flex: 1;
   padding: 16px;
 
   display: flex;
