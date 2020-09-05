@@ -28,7 +28,9 @@ export const Container = styled.div`
     justify-content: space-around;
 
     max-width: 100vw;
-    max-height: calc(100vh - var(--headerHeight));
+    /* Due to problems in using '100vh' for mobile browsers */
+    max-height: ${({ windowDimensions: wd }) =>
+      `calc(${wd.height}px - var(--headerHeight))`};
 
     min-height: 0;
 

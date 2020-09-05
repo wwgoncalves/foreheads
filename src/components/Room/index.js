@@ -354,7 +354,7 @@ function Room(props) {
   }, [snackPack, snack, snackbarIsOpen]);
 
   return (
-    <Container>
+    <Container windowDimensions={windowDimensions}>
       <Header roomId={roomId} />
       <main>
         <div className="videocall">

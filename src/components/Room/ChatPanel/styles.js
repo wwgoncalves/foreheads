@@ -15,6 +15,7 @@ export const Container = styled.div`
 
   background-color: #f0f0f0;
   color: var(--appBackgroundColor);
+  /* Due to problems in using '100vh' for mobile browsers */
   max-height: ${({ windowDimensions: wd }) =>
     `calc(${wd.height}px - var(--headerHeight))`};
 
@@ -65,7 +66,6 @@ export const Message = styled.span`
   ${({ origin }) => {
     if (origin === 'mine') {
       return css`
-        /* margin-left: 5rem; */
         align-self: flex-end;
         border-bottom-right-radius: 0px;
 
@@ -74,7 +74,6 @@ export const Message = styled.span`
       `;
     }
     return css`
-      /* margin-right: 5rem; */
       align-self: flex-start;
       border-top-left-radius: 0px;
 
