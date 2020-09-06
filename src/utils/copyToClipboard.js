@@ -10,6 +10,7 @@ export default async function (elementRef) {
   try {
     await navigator.clipboard.writeText(selectedContent);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(error);
   }
   selection.removeAllRanges();

@@ -8,7 +8,7 @@ import CloseIcon from '@material-ui/icons/Close';
 export const Container = styled.div`
   flex: 1;
   @media (max-width: 768px) {
-    flex: 4;
+    flex: 5;
   }
 
   z-index: 2;

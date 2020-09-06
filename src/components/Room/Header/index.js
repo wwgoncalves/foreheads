@@ -6,7 +6,7 @@ import { Tooltip, Button, ButtonGroup } from '@material-ui/core';
 import WhatsAppIcon from '@material-ui/icons/WhatsApp';
 import CopyIcon from '@material-ui/icons/FileCopyOutlined';
 
-import copyToClipboard from '~/util/copyToClipboard';
+import copyToClipboard from '~/utils/copyToClipboard';
 
 import { Container } from './styles';
 

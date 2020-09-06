@@ -1,5 +1,7 @@
 import Signalling from '~/services/signalling';
 
+import BuildFileWorker from '~/workers/BuildFile';
+
 export default class WebRTC {
   constructor(stream, options) {
     this.init = this.init.bind(this);
@@ -20,6 +22,7 @@ export default class WebRTC {
     this.sendFileRawData = this.sendFileRawData.bind(this);
     this.readFile = this.readFile.bind(this);
     this.buildFile = this.buildFile.bind(this);
+    this.onBuildFileWorkerMessage = this.onBuildFileWorkerMessage.bind(this);
     this.muteTrack = this.muteTrack.bind(this);
     this.unmuteTrack = this.unmuteTrack.bind(this);
     this.endPeerConnection = this.endPeerConnection.bind(this);
@@ -27,6 +30,7 @@ export default class WebRTC {
     this.stream = stream;
     this.myId = Math.floor(Math.random() * 1000000000);
     this.signallingChannel = new Signalling(options.networkId);
+    this.buildFileWorker = new BuildFileWorker();
 
     this.onLocalMedia = options.onLocalMedia;
     this.onRemoteMedia = options.onRemoteMedia;
@@ -63,6 +67,8 @@ export default class WebRTC {
     this.pc.ondatachannel = this.onDataChannelHandler;
 
     this.signallingChannel.subscribe(this.readSignal);
+
+    this.buildFileWorker.onmessage = this.onBuildFileWorkerMessage;
   }
 
   static async build(options) {
@@ -293,16 +299,16 @@ export default class WebRTC {
   }
 
   buildFile() {
-    const fileBytes = this.fileBuffer.reduce((prev, current) => {
-      const tmp = new Uint8Array(prev.byteLength + current.byteLength);
-      tmp.set(prev, 0);
-      tmp.set(current, prev.byteLength);
-      return tmp;
-    }, new Uint8Array());
-
-    const fileBlob = new Blob([fileBytes], {
-      type: this.fileInfo.fileType,
+    // Web worker runs this costly task in a separate thread to prevent UI blockages
+    this.buildFileWorker.postMessage({
+      fileBuffer: this.fileBuffer,
+      fileType: this.fileInfo.fileType,
     });
+  }
+
+  onBuildFileWorkerMessage(event) {
+    // "event.data" carries the just built file blob
+    const fileBlob = event.data;
 
     this.onFileReady(this.fileInfo, fileBlob);
 
