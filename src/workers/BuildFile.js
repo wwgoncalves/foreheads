@@ -6,14 +6,7 @@ function buildFile() {
     const { data } = event;
     const { fileBuffer, fileType } = data;
 
-    const fileBytes = fileBuffer.reduce((prev, current) => {
-      const tmp = new Uint8Array(prev.byteLength + current.byteLength);
-      tmp.set(prev, 0);
-      tmp.set(current, prev.byteLength);
-      return tmp;
-    }, new Uint8Array());
-
-    const fileBlob = new Blob([fileBytes], {
+    const fileBlob = new Blob(fileBuffer, {
       type: fileType,
     });
 

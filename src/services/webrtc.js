@@ -281,7 +281,7 @@ export default class WebRTC {
         this.fileInfo.fileState = 'waiting';
       }
     } else if (data instanceof ArrayBuffer && fileState === 'receiving') {
-      this.fileBuffer.push(new Uint8Array(data));
+      this.fileBuffer.push(data);
 
       this.fileInfo.bytesReceived += data.byteLength;
 
