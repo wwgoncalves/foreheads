@@ -143,7 +143,6 @@ export default class WebRTC {
     }
   }
 
-  // eslint-disable-next-line class-methods-use-this
   onICEConnectionStateChange(event) {
     if (event.target.iceConnectionState === 'disconnected') {
       this.onDisconnected();
