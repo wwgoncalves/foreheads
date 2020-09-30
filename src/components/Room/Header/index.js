@@ -11,7 +11,7 @@ import copyToClipboard from '~/utils/copyToClipboard';
 import { Container } from './styles';
 
 function Header(props) {
-  const { roomId } = props;
+  const { alone, roomId } = props;
 
   const roomIdElement = React.useRef(null);
 
@@ -24,40 +24,45 @@ function Header(props) {
           </span>
         </strong>
       </Tooltip>
-      <ButtonGroup aria-label="button group">
-        <Tooltip
-          title="Copy to clipboard"
-          aria-label="copy room id to clipboard"
-        >
-          <Button
-            variant="contained"
-            size="small"
-            onClick={() => copyToClipboard(roomIdElement)}
+      {alone && (
+        <ButtonGroup aria-label="button group">
+          <Tooltip
+            title="Copy to clipboard"
+            aria-label="copy room id to clipboard"
           >
-            <CopyIcon fontSize="small" />
-          </Button>
-        </Tooltip>
-        <Tooltip
-          title="Share on WhatsApp"
-          aria-label="share room id on whatsapp"
-        >
-          <Button
-            className="whatsapp"
-            size="small"
-            onClick={() =>
-              window.open(`whatsapp://send?text=${encodeURIComponent(roomId)}`)
-            }
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => copyToClipboard(roomIdElement)}
+            >
+              <CopyIcon fontSize="small" />
+            </Button>
+          </Tooltip>
+          <Tooltip
+            title="Share on WhatsApp"
+            aria-label="share room id on whatsapp"
           >
-            <WhatsAppIcon fontSize="small" />
-          </Button>
-        </Tooltip>
-      </ButtonGroup>
+            <Button
+              className="whatsapp"
+              size="small"
+              onClick={() =>
+                window.open(
+                  `whatsapp://send?text=${encodeURIComponent(roomId)}`
+                )
+              }
+            >
+              <WhatsAppIcon fontSize="small" />
+            </Button>
+          </Tooltip>
+        </ButtonGroup>
+      )}
     </Container>
   );
 }
 
 Header.propTypes = {
   roomId: PropTypes.string.isRequired,
+  alone: PropTypes.bool.isRequired,
 };
 
 export default Header;

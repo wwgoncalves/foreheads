@@ -355,7 +355,7 @@ function Room(props) {
 
   return (
     <Container windowDimensions={windowDimensions}>
-      <Header roomId={roomId} />
+      <Header alone={alone} roomId={roomId} />
       <main>
         <div className="videocall">
           <div className="someone">
