@@ -20,7 +20,7 @@ A partir [desse endereço](foreheads-af123.firebaseapp.com), você e outra pesso
 
 _A UI está em inglês para facilitar o uso de qualquer interessado. A aplicação foi testada principalmente nos navegadores Chrome (para Linux e Android). Para dificuldades que precisar de ajuda, fique à vontade para usar a seção de issues deste repositório._
 
-A tecnologia WebRTC, embora recentemente estável e em progresso, traz novas possibilidades de comunicação aos diferentes navegadores que a adotam. Sinta-se livre para utilizar e estender o código deste repositório, bem como implantar esta solução em um espaço próprio.
+A tecnologia WebRTC, recentemente estável e em melhoria contínua, permite o desenvolvimento de soluções muito interessantes que usam voz e imagem, e comunicação em tempo real entre os navegadores/clientes. Sinta-se livre para utilizar e estender o código deste repositório, bem como implantar esta solução em um espaço próprio.
 
 ---
 
