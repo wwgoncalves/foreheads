@@ -304,6 +304,7 @@ function Room(props) {
         video: {
           width: { ideal: 1920 },
           height: { ideal: 1080 },
+          facingMode: { ideal: 'user' },
         },
       };
 
