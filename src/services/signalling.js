@@ -15,4 +15,8 @@ export default class Signalling {
   subscribe(handlerFunction) {
     firebase.subscribe(this.channelId, 'child_added', handlerFunction);
   }
+
+  close() {
+    firebase.removeKey(this.channelId);
+  }
 }

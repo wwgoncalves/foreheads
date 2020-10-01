@@ -38,8 +38,14 @@ export default class WebRTC {
 
     this.servers = {
       iceServers: [
-        { urls: 'stun:stun.services.mozilla.com' },
+        { urls: 'stun:stun.services.mozilla.com:3478' },
         { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' },
+        { urls: 'stun:stun.stunprotocol.org:3478' },
+        { urls: 'stun:numb.viagenie.ca:3478' },
       ],
     }; // (!) no turn server configured
 
@@ -145,6 +151,7 @@ export default class WebRTC {
 
   onTrackHandler(event) {
     this.onRemoteMedia(event.streams[0]);
+    this.signallingChannel.close();
   }
 
   onDataChannelHandler(event) {

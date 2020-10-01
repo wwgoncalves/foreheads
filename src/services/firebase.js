@@ -17,10 +17,12 @@ const database = firebase.database();
 const generateKey = () => database.ref().push().key;
 const save = (key, value) => database.ref(key).update(value);
 const subscribe = (key, event, func) => database.ref(key).on(event, func);
+const removeKey = (key) => database.ref(key).remove();
 
 export default {
   database,
   generateKey,
   save,
   subscribe,
+  removeKey,
 };
