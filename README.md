@@ -1,10 +1,10 @@
 <h1 align="center">
-  <img alt="Foreheads" title="Logo do projeto Foreheads" src="public/logo.png" width="150px" />
+  <img alt="Foreheads" title="Logo" src="public/logo.png" width="150px" />
 </h1>
 
-> :closed_lock_with_key::busts_in_silhouette::speech_balloon: Foreheads é uma solução de comunicação em tempo real, segura e de ponta-a-ponta entre duas pessoas.
+> :closed_lock_with_key::busts_in_silhouette::speech_balloon: Foreheads é uma solução experimental para comunicação em tempo real, segura e de ponta-a-ponta entre duas pessoas.
 
-<p align="justify">A solução permite, simultaneamente, realizar videochamadas, trocar mensagens de texto e transferir arquivos de qualquer tamanho de maneira privada<sup>*</sup>, de navegador para navegador, através da tecnologia <a href="https://webrtc.org/">WebRTC</a>. As bibliotecas <a href="https://reactjs.org/">React</a>, <a href="https://material-ui.com/">Material-UI</a> e <a href="https://styled-components.com/">styled-components</a> foram utilizadas em sua implementação.</p>
+<p align="justify">Simultaneamente, a aplicação permite realizar uma videochamada, trocar mensagens de texto e transferir arquivos de qualquer tamanho de maneira privada<sup>*</sup>, de navegador para navegador, através da tecnologia <a href="https://webrtc.org/">WebRTC</a>. Em seu desenvolvimento, as bibliotecas <a href="https://reactjs.org/">React</a>, <a href="https://material-ui.com/">Material-UI</a> e <a href="https://styled-components.com/">styled-components</a> foram utilizadas.</p>
 
 ---
 
