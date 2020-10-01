@@ -16,7 +16,7 @@ _TBD_
 
 ## Demonstração e Uso do Código
 
-A partir [desse endereço](foreheads-af123.firebaseapp.com), você e outra pessoa podem testar a aplicação. Vocês terão total privacidade na comunicação de voz, vídeo, texto e arquivos.
+A partir [desse endereço](https://foreheads-af123.web.app/), você e outra pessoa podem testar a aplicação. Vocês terão total privacidade na comunicação de voz, vídeo, texto e arquivos.
 
 _A UI está em inglês para facilitar o uso de qualquer interessado. A aplicação foi testada principalmente nos navegadores Chrome (para Linux e Android). Para dificuldades que precisar de ajuda, fique à vontade para usar a seção de issues deste repositório._
 
