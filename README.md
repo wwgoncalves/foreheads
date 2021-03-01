@@ -1,5 +1,6 @@
 <h1 align="center">
-  <img alt="Foreheads" title="Logo" src="public/logo.png" width="150px" />
+  <img alt="Foreheads" title="Logo" src="public/logo.png" width="150px" /> <br />
+  foreheads
 </h1>
 
 > :closed_lock_with_key::busts_in_silhouette::speech_balloon: Foreheads é uma solução experimental para comunicação em tempo real, segura e de ponta-a-ponta entre duas pessoas.
